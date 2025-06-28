@@ -58,34 +58,55 @@ jobs:
     
     - name: Update READMEs
       id: update
+      shell: bash
       run: |
+        # Debug information
         echo "Event type: ${{ github.event_name }}"
-        echo "Update all: ${{ github.event.inputs.update_all }}"
-        echo "Module path: ${{ github.event.inputs.module_path }}"
-        echo "Version: ${{ github.event.inputs.version }}"
-        echo "Description: ${{ github.event.inputs.description }}"
+        echo "Update all: '${{ github.event.inputs.update_all }}'"
+        echo "Module path: '${{ github.event.inputs.module_path }}'"
+        echo "Version: '${{ github.event.inputs.version }}'"
+        echo "Description: '${{ github.event.inputs.description }}'"
         
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          if [ "${{ github.event.inputs.update_all }}" = "true" ]; then
+        # Handle workflow dispatch events
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "Processing workflow dispatch event..."
+          
+          # Check if update_all is true
+          if [[ "${{ github.event.inputs.update_all }}" == "true" ]]; then
             echo "Updating all modules..."
             python scripts/update-readme.py --all
             echo "update_type=all" >> $GITHUB_OUTPUT
-          elif [ -n "${{ github.event.inputs.module_path }}" ] && [ -n "${{ github.event.inputs.version }}" ] && [ -n "${{ github.event.inputs.description }}" ]; then
+            echo "✅ Successfully updated all modules"
+          
+          # Check if specific module parameters are provided
+          elif [[ -n "${{ github.event.inputs.module_path }}" && -n "${{ github.event.inputs.version }}" && -n "${{ github.event.inputs.description }}" ]]; then
             echo "Updating specific module: ${{ github.event.inputs.module_path }}"
             python scripts/update-readme.py --manual "${{ github.event.inputs.module_path }}" "${{ github.event.inputs.version }}" "${{ github.event.inputs.description }}"
             echo "update_type=specific" >> $GITHUB_OUTPUT
+            echo "✅ Successfully updated specific module"
+          
+          # Invalid parameters
           else
-            echo "Invalid manual update parameters"
+            echo "❌ Invalid manual update parameters"
+            echo "Required parameters for manual update:"
+            echo "  - module_path: '${{ github.event.inputs.module_path }}'"
+            echo "  - version: '${{ github.event.inputs.version }}'"
+            echo "  - description: '${{ github.event.inputs.description }}'"
+            echo "Or set update_all=true to update all modules"
             exit 1
           fi
+        
+        # Handle push events (auto-update)
         else
           echo "Auto-updating all modules from pyproject.toml changes..."
           python scripts/update-readme.py --all
           echo "update_type=auto" >> $GITHUB_OUTPUT
+          echo "✅ Successfully auto-updated all modules"
         fi
     
     - name: Check for changes
       id: changes
+      shell: bash
       run: |
         if git diff --quiet; then
           echo "has_changes=false" >> $GITHUB_OUTPUT
@@ -98,6 +119,7 @@ jobs:
     
     - name: Commit and push changes
       if: steps.changes.outputs.has_changes == 'true' && github.event_name != 'workflow_dispatch'
+      shell: bash
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -148,13 +170,14 @@ jobs:
           })
     
     - name: Summary
+      shell: bash
       run: |
         echo "## README Update Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "- **Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Update Type:** ${{ steps.update.outputs.update_type }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Changes Detected:** ${{ steps.changes.outputs.has_changes }}" >> $GITHUB_STEP_SUMMARY
-        if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+        if [[ "${{ steps.changes.outputs.has_changes }}" == "true" ]]; then
           echo "- **Status:** ✅ READMEs updated successfully" >> $GITHUB_STEP_SUMMARY
         else
           echo "- **Status:** ℹ️ No changes needed" >> $GITHUB_STEP_SUMMARY 

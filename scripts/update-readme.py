@@ -470,20 +470,49 @@ def main():
     
     # Manual update mode
     if args.manual:
-        if not all([args.module_path, args.version, args.description]):
-            print("Usage for manual update: python scripts/update-readme.py --manual <module_path> <version> <description>")
-            print("Example: python scripts/update-readme.py --manual ./packages/modules/ledger 1.2.0 'Added security audit features'")
+        # Enhanced validation with detailed error messages
+        missing_args = []
+        if not args.module_path:
+            missing_args.append("module_path")
+        if not args.version:
+            missing_args.append("version")
+        if not args.description:
+            missing_args.append("description")
+        
+        if missing_args:
+            print("❌ Error: Missing required arguments for manual update:")
+            for arg in missing_args:
+                print(f"  - {arg}")
+            print("\nUsage for manual update:")
+            print("  python scripts/update-readme.py --manual <module_path> <version> <description>")
+            print("\nExample:")
+            print("  python scripts/update-readme.py --manual ./packages/modules/ledger 1.2.0 'Added security audit features'")
+            print("\nNote: All three arguments (module_path, version, description) are required for manual updates.")
+            sys.exit(1)
+        
+        # Validate module path exists
+        module_path = Path(args.module_path)
+        if not module_path.exists():
+            print(f"❌ Error: Module path '{args.module_path}' does not exist")
+            print(f"Current working directory: {Path.cwd()}")
+            print("Please provide a valid path to an existing module directory.")
             sys.exit(1)
         
         # Find project root
-        project_root = Path(args.module_path).resolve()
+        project_root = module_path.resolve()
         while project_root.parent != project_root:
             if (project_root / "packages" / "modules").exists():
                 break
             project_root = project_root.parent
         else:
             print(f"❌ Error: Could not find project root from '{args.module_path}'")
+            print("The module path should be within a project that has a 'packages/modules' directory.")
             sys.exit(1)
+        
+        print(f"✅ Found project root: {project_root}")
+        print(f"✅ Module path: {module_path}")
+        print(f"✅ Version: {args.version}")
+        print(f"✅ Description: {args.description}")
         
         updater = READMEUpdater(project_root)
         success = updater.manual_update(args.module_path, args.version, args.description)
@@ -496,7 +525,9 @@ def main():
     modules = updater.find_modules()
     
     if not modules:
-        print("No modules found to update")
+        print("❌ No modules found to update")
+        print("Make sure you're running this script from the project root directory.")
+        print("Expected directory structure: packages/modules/*/")
         sys.exit(1)
     
     print(f"Found {len(modules)} modules:")
@@ -517,6 +548,13 @@ def main():
             success_count += 1
     
     print(f"\n✅ Successfully updated {success_count} files")
+    
+    if success_count == 0:
+        print("⚠️  No files were updated. This might indicate:")
+        print("  - No changes were needed")
+        print("  - Files are already up to date")
+        print("  - There were errors during the update process")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
