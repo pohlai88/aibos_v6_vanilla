@@ -1,0 +1,313 @@
+name: Version Management & Rollback
+
+on:
+  push:
+    paths:
+      - 'pyproject.toml'
+      - 'packages/modules/*/pyproject.toml'
+      - 'scripts/version-manager.py'
+      - 'scripts/rollback-manager.py'
+      - 'scripts/patch-manager.py'
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'version-check'
+        type: choice
+        options:
+          - version-check
+          - increment-version
+          - create-release
+          - deploy-patch
+          - rollback
+          - security-scan
+      version_type:
+        description: 'Version increment type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+      release_type:
+        description: 'Release type'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - release
+          - hotfix
+      deployment_name:
+        description: 'Deployment name for rollback'
+        required: false
+        type: string
+      rollback_reason:
+        description: 'Reason for rollback'
+        required: false
+        type: string
+
+jobs:
+  version-management:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install toml semver kubernetes requests pyyaml
+    
+    - name: Set up Kubernetes
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure Kubernetes
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+        kubectl config current-context
+    
+    - name: Version Check
+      if: github.event.inputs.action == 'version-check' || github.event_name == 'push'
+      id: version-check
+      run: |
+        echo "Checking current version..."
+        CURRENT_VERSION=$(python scripts/version-manager.py --current)
+        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        
+        # Check for version conflicts
+        if git tag | grep -q "v$CURRENT_VERSION"; then
+          echo "version_exists=true" >> $GITHUB_OUTPUT
+          echo "⚠️ Version $CURRENT_VERSION already exists as a tag"
+        else
+          echo "version_exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+        # Check for breaking changes
+        if [ -f "BREAKING_CHANGES.md" ]; then
+          BREAKING_CHANGES=$(grep -c "## Version $CURRENT_VERSION" BREAKING_CHANGES.md || echo "0")
+          echo "breaking_changes=$BREAKING_CHANGES" >> $GITHUB_OUTPUT
+        else
+          echo "breaking_changes=0" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Increment Version
+      if: github.event.inputs.action == 'increment-version'
+      id: increment-version
+      run: |
+        echo "Incrementing version..."
+        python scripts/version-manager.py --increment ${{ github.event.inputs.version_type }} --release-type ${{ github.event.inputs.release_type }}
+        
+        NEW_VERSION=$(python scripts/version-manager.py --current)
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        
+        # Add changelog entry
+        python scripts/version-manager.py --add-changelog "$NEW_VERSION" "Version increment via GitHub Actions" "false"
+    
+    - name: Create Release
+      if: github.event.inputs.action == 'create-release'
+      id: create-release
+      run: |
+        echo "Creating release..."
+        CURRENT_VERSION=$(python scripts/version-manager.py --current)
+        
+        # Generate release notes
+        RELEASE_NOTES="Release $CURRENT_VERSION
+        
+        ## Changes
+        - Automated release via GitHub Actions
+        - Version: $CURRENT_VERSION
+        - Release Type: ${{ github.event.inputs.release_type }}
+        
+        ## Changelog
+        $(python scripts/version-manager.py --generate-changelog "" "$CURRENT_VERSION")"
+        
+        python scripts/version-manager.py --create-release "$CURRENT_VERSION" "$RELEASE_NOTES"
+        
+        echo "release_created=true" >> $GITHUB_OUTPUT
+        echo "release_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Security Scan
+      if: github.event.inputs.action == 'security-scan' || github.event_name == 'push'
+      id: security-scan
+      run: |
+        echo "Running security scan..."
+        python scripts/patch-manager.py --scan-vulnerabilities
+        
+        # Check for critical vulnerabilities
+        CRITICAL_VULNS=$(python scripts/patch-manager.py --critical-patches | grep -c "critical" || echo "0")
+        echo "critical_vulnerabilities=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+        
+        if [ "$CRITICAL_VULNS" -gt 0 ]; then
+          echo "🚨 Critical vulnerabilities found!"
+          echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
+        else
+          echo "vulnerabilities_found=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Deploy Patch
+      if: github.event.inputs.action == 'deploy-patch'
+      id: deploy-patch
+      run: |
+        echo "Deploying patch..."
+        CURRENT_VERSION=$(python scripts/version-manager.py --current)
+        
+        # Create patch
+        python scripts/patch-manager.py --create-patch "hotfix" "high" "Emergency patch deployment" "Critical security fix" "ledger,security" "$CURRENT_VERSION"
+        
+        # Deploy patch
+        python scripts/patch-manager.py --deploy-patch "latest" "production"
+        
+        echo "patch_deployed=true" >> $GITHUB_OUTPUT
+    
+    - name: Rollback Check
+      if: github.event.inputs.action == 'rollback' || steps.security-scan.outputs.vulnerabilities_found == 'true'
+      id: rollback-check
+      run: |
+        echo "Checking deployment health..."
+        export KUBECONFIG=kubeconfig
+        
+        # Check all deployments
+        DEPLOYMENTS=$(kubectl get deployments -n aibos -o jsonpath='{.items[*].metadata.name}')
+        
+        for deployment in $DEPLOYMENTS; do
+          echo "Checking $deployment..."
+          python scripts/rollback-manager.py --health-check "$deployment"
+          
+          # Auto-rollback if needed
+          python scripts/rollback-manager.py --auto-rollback "$deployment"
+        done
+    
+    - name: Manual Rollback
+      if: github.event.inputs.action == 'rollback'
+      id: manual-rollback
+      run: |
+        echo "Performing manual rollback..."
+        export KUBECONFIG=kubeconfig
+        
+        python scripts/rollback-manager.py --rollback "${{ github.event.inputs.deployment_name }}" "${{ github.event.inputs.rollback_reason }}"
+        
+        echo "rollback_completed=true" >> $GITHUB_OUTPUT
+    
+    - name: Update Documentation
+      if: always()
+      run: |
+        echo "Updating documentation..."
+        
+        # Update READMEs
+        python scripts/update-readme.py --all
+        
+        # Update breaking changes
+        if [ -f "scripts/breaking-changes-tracker.py" ]; then
+          python scripts/breaking-changes-tracker.py --update-md
+        fi
+        
+        # Generate patch report
+        if [ -f "scripts/patch-manager.py" ]; then
+          python scripts/patch-manager.py --report > PATCH_REPORT.md
+        fi
+    
+    - name: Commit Changes
+      if: always() && github.event_name != 'workflow_dispatch'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if git diff --quiet; then
+          echo "No changes to commit"
+        else
+          git add .
+          git commit -m "chore: Automated version management [skip ci]
+          
+          - Updated version information
+          - Generated changelog
+          - Updated documentation
+          - Triggered by: ${{ github.event_name }}"
+          git push
+        fi
+    
+    - name: Create Pull Request
+      if: always() && github.event_name == 'workflow_dispatch'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore: Version management via workflow dispatch"
+        title: "chore: Version Management - ${{ github.event.inputs.action }}"
+        body: |
+          Automated version management triggered by workflow dispatch.
+          
+          **Action:** ${{ github.event.inputs.action }}
+          **Version Type:** ${{ github.event.inputs.version_type || 'N/A' }}
+          **Release Type:** ${{ github.event.inputs.release_type || 'N/A' }}
+          
+          **Changes:**
+          - Updated version information
+          - Generated changelog
+          - Updated documentation
+          - Performed security scan
+          - Checked deployment health
+          
+          This PR was automatically generated by the version management workflow.
+        branch: version-management-${{ github.run_number }}
+        delete-branch: true
+        labels: "automated,version-management"
+    
+    - name: Notify Team
+      if: always() && (steps.security-scan.outputs.vulnerabilities_found == 'true' || steps.rollback-check.outputs.rollback_completed == 'true')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const message = `🚨 **Security Alert**
+          
+          **Repository:** ${{ github.repository }}
+          **Action:** ${{ github.event.inputs.action || 'push' }}
+          
+          ${process.env.VULNERABILITIES_FOUND === 'true' ? '⚠️ Critical vulnerabilities detected!' : ''}
+          ${process.env.ROLLBACK_COMPLETED === 'true' ? '🔄 Rollback completed' : ''}
+          
+          Please review immediately.`;
+          
+          // Create issue for critical alerts
+          if (process.env.VULNERABILITIES_FOUND === 'true') {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Critical Security Vulnerabilities Detected',
+              body: message,
+              labels: ['security', 'critical', 'automated']
+            });
+          }
+      env:
+        VULNERABILITIES_FOUND: ${{ steps.security-scan.outputs.vulnerabilities_found }}
+        ROLLBACK_COMPLETED: ${{ steps.manual-rollback.outputs.rollback_completed }}
+    
+    - name: Summary
+      if: always()
+      run: |
+        echo "## Version Management Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Action:** ${{ github.event.inputs.action || 'push' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Current Version:** ${{ steps.version-check.outputs.current_version || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **New Version:** ${{ steps.increment-version.outputs.new_version || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Breaking Changes:** ${{ steps.version-check.outputs.breaking_changes || '0' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Critical Vulnerabilities:** ${{ steps.security-scan.outputs.critical_vulnerabilities || '0' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Release Created:** ${{ steps.create-release.outputs.release_created || 'false' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Patch Deployed:** ${{ steps.deploy-patch.outputs.patch_deployed || 'false' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Rollback Completed:** ${{ steps.manual-rollback.outputs.rollback_completed || 'false' }}" >> $GITHUB_STEP_SUMMARY 
