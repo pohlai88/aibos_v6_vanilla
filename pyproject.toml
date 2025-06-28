@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aibos-ledger"
-version = "0.1.0"
+name = "aibos"
+version = "1.0.0"
 description = "Modular accounting SaaS with Malaysian Financial Reporting Standards compliance"
 authors = [
     {name = "AIbos Team", email = "dev@aibos.com"}
@@ -12,13 +12,15 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
     "fastapi>=0.104.0",
@@ -31,6 +33,15 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
     "python-dotenv>=1.0.0",
+    "toml>=0.10.0",
+    "aiohttp>=3.8.0",
+    "redis>=4.5.0",
+    "cryptography>=41.0.0",
+    "kubernetes>=28.0.0",
+    "pydantic-settings>=2.0.0",
+    "structlog>=23.0.0",
+    "tenacity>=8.2.0",
+    "httpx>=0.25.0",
 ]
 
 [project.optional-dependencies]
@@ -38,6 +49,8 @@ dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+    "pytest-xdist>=3.3.0",
     "black>=23.0.0",
     "isort>=5.12.0",
     "mypy>=1.7.0",
@@ -45,13 +58,48 @@ dev = [
     "pre-commit>=3.5.0",
     "jupyter>=1.0.0",
     "ipython>=8.0.0",
+    "toml>=0.10.0",
 ]
 test = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+    "pytest-xdist>=3.3.0",
     "factory-boy>=3.3.0",
     "faker>=20.0.0",
+    "httpx>=0.25.0",
+]
+security = [
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+    "semgrep>=1.40.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.23.0",
+]
+
+[tool.aibos]
+version = "1.0.0"
+description = "Comprehensive Malaysian accounting SaaS platform with MFRS compliance"
+changelog = [
+    "Initial release with core modules",
+    "Implemented ledger and bookkeeping functionality",
+    "Added MFRS compliance engine",
+    "Integrated tax calculation modules",
+    "Implemented security audit framework",
+    "Added distributed security services",
+    "Created cryptographic audit trail",
+    "Implemented multi-tenant support",
+    "Added subscription and billing modules",
+    "Integrated Bursa Malaysia reporting",
+    "Added MIA compliance validator",
+    "Implemented white-label service",
+    "Created workflow engine for approvals",
+    "Added data location service",
+    "Implemented permission service with RBAC"
 ]
 
 [tool.black]
@@ -103,8 +151,8 @@ disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --strict-config"
-testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --strict-config --cov=packages --cov-report=html --cov-report=term-missing"
+testpaths = ["tests", "packages/modules/*/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -112,6 +160,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "security: marks tests as security tests",
+    "mfrs: marks tests as MFRS compliance tests",
 ]
 
 [tool.coverage.run]
@@ -121,6 +171,7 @@ omit = [
     "*/test_*",
     "*/__pycache__/*",
     "*/migrations/*",
+    "*/scripts/*",
 ]
 
 [tool.coverage.report]
@@ -138,4 +189,11 @@ exclude_lines = [
 ]
 
 [tool.coverage.html]
-directory = "htmlcov" 
+directory = "htmlcov"
+
+[tool.bandit]
+exclude_dirs = ["tests", "migrations"]
+skips = ["B101", "B601"]
+
+[tool.semgrep]
+config = "p/security-audit" 
