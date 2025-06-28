@@ -1,0 +1,21 @@
+# Example GitHub Actions CI/CD Workflow for FastAPI
+
+# Save as .github/workflows/ci.yml
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest
+      - name: Export OpenAPI spec
+        run: |
+          curl http://localhost:8000/openapi.json -o openapi.json || true

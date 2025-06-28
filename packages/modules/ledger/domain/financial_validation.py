@@ -86,4 +86,8 @@ class FinancialStatementValidator:
                 f"Actual: {converted_amount}\n"
                 f"Discrepancy: {discrepancy}"
             )
-        return True 
+        return True
+
+# Minimal FinancialValidation class for import compatibility
+class FinancialValidation:
+    pass

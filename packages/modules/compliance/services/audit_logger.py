@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import json
 
 class AuditLogger:
+    """Audit logger for compliance and traceability. Extend for integration with external systems."""
     def __init__(self, log_file: str = "audit.log", log_directory: str = "logs"):
         self.log_file = log_file
         self.log_directory = log_directory
@@ -37,7 +38,10 @@ class AuditLogger:
         description: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
-        """Log audit events for MIA compliance"""
+        """Log an audit event. In production, extend to integrate with Sentry, DataDog, etc."""
+        # For now, just print or append to a file/log
+        print(f"AUDIT: {user_id} | {event_type} | {description} | {metadata}")
+        
         log_path = os.path.join(self.log_directory, "audit_events.log")
         event_data = {
             "timestamp": datetime.now().isoformat(),
@@ -170,4 +174,4 @@ class AuditLogger:
                     entry["new_value"]
                 ])
         
-        return output_path 
+        return output_path

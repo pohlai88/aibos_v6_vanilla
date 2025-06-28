@@ -577,7 +577,13 @@ class PermissionService:
 
 
 # Global permission service instance
-permission_service = PermissionService()
+permission_service = None  # Delay instantiation
+
+def get_permission_service():
+    global permission_service
+    if permission_service is None:
+        permission_service = PermissionService()
+    return permission_service
 
 
 # Permission decorators for easy integration
@@ -593,13 +599,13 @@ def require_permission(resource_type: ResourceType, action: PermissionAction):
             else:
                 raise ValueError("User ID is required for permission check")
             
-            if not permission_service.has_permission(user_id, resource_type, action):
+            if not get_permission_service().has_permission(user_id, resource_type, action):
                 raise PermissionError(
                     f"User {user_id} does not have {action.value} permission on {resource_type.value}"
                 )
             
             # Log the action
-            permission_service.log_audit_event(
+            get_permission_service().log_audit_event(
                 user_id=user_id,
                 action=f"{func.__name__}_{action.value}",
                 resource_type=resource_type,
@@ -614,11 +620,11 @@ def require_permission(resource_type: ResourceType, action: PermissionAction):
 def filter_by_permissions(user_id: UUID, resource_type: ResourceType, 
                          items: List[Any], id_extractor: Callable = None) -> List[Any]:
     """Filter a list of items based on user permissions."""
-    if not permission_service.has_permission(user_id, resource_type, PermissionAction.READ):
+    if not get_permission_service().has_permission(user_id, resource_type, PermissionAction.READ):
         return []
     
     # If user has full access, return all items
-    if permission_service.has_permission(user_id, resource_type, PermissionAction.UPDATE):
+    if get_permission_service().has_permission(user_id, resource_type, PermissionAction.UPDATE):
         return items
     
     # For read-only access, return all items (they can read but not modify)
@@ -628,34 +634,34 @@ def filter_by_permissions(user_id: UUID, resource_type: ResourceType,
 # Helper functions for common permission checks
 def can_create_journal_entries(user_id: UUID) -> bool:
     """Check if user can create journal entries."""
-    return permission_service.has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.CREATE)
+    return get_permission_service().has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.CREATE)
 
 
 def can_post_journal_entries(user_id: UUID) -> bool:
     """Check if user can post journal entries."""
-    return permission_service.has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.POST)
+    return get_permission_service().has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.POST)
 
 
 def can_approve_journal_entries(user_id: UUID) -> bool:
     """Check if user can approve journal entries."""
-    return permission_service.has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.APPROVE)
+    return get_permission_service().has_permission(user_id, ResourceType.JOURNAL_ENTRIES, PermissionAction.APPROVE)
 
 
 def can_view_financial_reports(user_id: UUID) -> bool:
     """Check if user can view financial reports."""
-    return permission_service.has_permission(user_id, ResourceType.FINANCIAL_REPORTS, PermissionAction.READ)
+    return get_permission_service().has_permission(user_id, ResourceType.FINANCIAL_REPORTS, PermissionAction.READ)
 
 
 def can_export_reports(user_id: UUID) -> bool:
     """Check if user can export reports."""
-    return permission_service.has_permission(user_id, ResourceType.FINANCIAL_REPORTS, PermissionAction.EXPORT)
+    return get_permission_service().has_permission(user_id, ResourceType.FINANCIAL_REPORTS, PermissionAction.EXPORT)
 
 
 def can_manage_subscriptions(user_id: UUID) -> bool:
     """Check if user can manage subscriptions."""
-    return permission_service.has_permission(user_id, ResourceType.SUBSCRIPTIONS, PermissionAction.CREATE)
+    return get_permission_service().has_permission(user_id, ResourceType.SUBSCRIPTIONS, PermissionAction.CREATE)
 
 
 def can_close_billing_periods(user_id: UUID) -> bool:
     """Check if user can close billing periods."""
-    return permission_service.has_permission(user_id, ResourceType.BILLING_PERIODS, PermissionAction.CLOSE) 
+    return get_permission_service().has_permission(user_id, ResourceType.BILLING_PERIODS, PermissionAction.CLOSE)

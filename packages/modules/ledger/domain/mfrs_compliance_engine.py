@@ -18,6 +18,9 @@ import sqlite3
 from contextlib import contextmanager
 import re
 
+# Import modular compliance rules
+from packages.modules.ledger.domain.compliance_rules import ComplianceRuleRegistry
+
 logger = logging.getLogger(__name__)
 
 
@@ -1003,8 +1006,16 @@ mfrs_engine = MFRSEngine()
 
 # Convenience functions for easy integration
 def validate_transaction_compliance(transaction: Dict[str, Any]) -> List[ValidationViolation]:
-    """Validate a transaction for MFRS compliance"""
-    return mfrs_engine.validate_transaction(transaction)
+    """Validate a transaction for MFRS compliance using modular rules."""
+    violations = []
+    # Use all registered modular rules
+    for rule in ComplianceRuleRegistry.all_rules():
+        modular_violations = rule.validate(transaction)
+        # Convert modular violations to ValidationViolation dataclass if needed
+        for v in modular_violations:
+            violations.append(v)
+    # Optionally, call legacy engine as well (for now, skip to avoid double validation)
+    return violations
 
 
 def generate_mfrs_disclosures(financial_data: Dict[str, Any]) -> List[GeneratedDisclosure]:
@@ -1037,4 +1048,4 @@ def get_mfrs_violations(
         start_date=start_date,
         end_date=end_date,
         limit=limit
-    ) 
+    )

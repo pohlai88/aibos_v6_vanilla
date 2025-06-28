@@ -1,3 +1,5 @@
+from enum import Enum
+
 # countries.py
 # Reference table for country, currency, UTC, and dialing code
 
@@ -55,4 +57,22 @@ def get_country_info(country_code: str) -> dict:
 
 
 def get_country_by_currency(currency_code: str) -> dict:
-    return CURRENCY_CODE_MAP.get(currency_code) 
+    return CURRENCY_CODE_MAP.get(currency_code)
+
+
+# Minimal Currency enum for import compatibility
+class Currency(Enum):
+    USD = 'USD'
+    EUR = 'EUR'
+    MYR = 'MYR'
+    GBP = 'GBP'
+    JPY = 'JPY'
+
+
+# Minimal Country class for import compatibility
+class Country:
+    """Stub for Country. Extend with country code, name, and currency as needed."""
+    def __init__(self, code: str = "", name: str = "", currency: str = "MYR"):
+        self.code = code
+        self.name = name
+        self.currency = currency

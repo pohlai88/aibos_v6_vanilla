@@ -331,6 +331,20 @@ class FinancialMetrics:
         return metrics
 
 
+# Add a minimal BalanceSheetItem for import compatibility
+from dataclasses import dataclass
+from typing import Optional
+from uuid import UUID
+from decimal import Decimal
+
+@dataclass
+class BalanceSheetItem:
+    account_id: Optional[UUID]
+    account_name: str = ""
+    balance: Decimal = Decimal('0')
+    tenant_id: Optional[UUID] = None
+
+
 # Example usage
 def create_sample_balance_sheet(ledger_service: LedgerService) -> BalanceSheet:
     """Create a sample balance sheet for demonstration."""
@@ -361,4 +375,4 @@ def create_sample_balance_sheet(ledger_service: LedgerService) -> BalanceSheet:
     
     # Generate balance sheet
     balance_sheet_service = BalanceSheetService(ledger_service)
-    return balance_sheet_service.generate_balance_sheet() 
+    return balance_sheet_service.generate_balance_sheet()

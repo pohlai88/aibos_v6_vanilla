@@ -470,6 +470,13 @@ class AutomatedValidator:
         return validation_results
 
 
+# Minimal AutomatedValidation class for import compatibility
+class AutomatedValidation:
+    """Stub for AutomatedValidation. Extend with validation logic as needed."""
+    def __init__(self):
+        pass
+
+
 def nightly_validation(ledger_service: LedgerService) -> Dict[str, Any]:
     """
     Standalone function for nightly validation.
@@ -509,4 +516,4 @@ def schedule_validation(ledger_service: LedgerService, schedule_type: str = "nig
         print(f"Validation scheduled for {schedule_type}")
     
     # For now, just run the validation immediately
-    return validator.nightly_validation() 
+    return validator.nightly_validation()

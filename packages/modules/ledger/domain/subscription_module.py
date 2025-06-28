@@ -566,86 +566,112 @@ class SubscriptionService:
 # Enhanced JournalEntryTemplates with subscription support
 class SubscriptionJournalEntryTemplates:
     """Templates for subscription-related journal entries."""
-    
+
     @staticmethod
     @enforce_tenant_isolation
-    def monthly_saas_revenue(service: LedgerService, customer_account_id: UUID,
-                           revenue_account_id: UUID, amount: Decimal,
-                           reference: str, description: str) -> JournalEntry:
-        """Create a journal entry for monthly SaaS revenue."""
+    def monthly_saas_revenue(
+        service: LedgerService,
+        customer_account_id: UUID,
+        revenue_account_id: UUID,
+        amount: Decimal,
+        reference: str,
+        description: str,
+        currency: str = "MYR",
+        fx_rate: float = 1.0
+    ) -> JournalEntry:
+        """Create a journal entry for monthly SaaS revenue with multi-currency support."""
         entry = service.create_journal_entry(
             reference=reference,
             description=description
         )
-        
         # Debit customer account (accounts receivable)
         entry.add_line(
             account_id=customer_account_id,
             debit_amount=amount,
-            description=f"Monthly SaaS billing - {description}"
+            description=f"Monthly SaaS billing - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
         # Credit revenue account
         entry.add_line(
             account_id=revenue_account_id,
             credit_amount=amount,
-            description=f"Monthly SaaS revenue - {description}"
+            description=f"Monthly SaaS revenue - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
         return entry
-    
+
     @staticmethod
     @enforce_tenant_isolation
-    def deferred_revenue_recognition(service: LedgerService, 
-                                   deferred_revenue_account_id: UUID,
-                                   revenue_account_id: UUID, amount: Decimal,
-                                   reference: str, description: str) -> JournalEntry:
-        """Create a journal entry for deferred revenue recognition."""
+    def deferred_revenue_recognition(
+        service: LedgerService,
+        deferred_revenue_account_id: UUID,
+        revenue_account_id: UUID,
+        amount: Decimal,
+        reference: str,
+        description: str,
+        currency: str = "MYR",
+        fx_rate: float = 1.0
+    ) -> JournalEntry:
+        """Create a journal entry for deferred revenue recognition with multi-currency support."""
         entry = service.create_journal_entry(
             reference=reference,
             description=description
         )
-        
         # Debit deferred revenue (liability)
         entry.add_line(
             account_id=deferred_revenue_account_id,
             debit_amount=amount,
-            description=f"Deferred revenue recognition - {description}"
+            description=f"Deferred revenue recognition - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
         # Credit revenue (income)
         entry.add_line(
             account_id=revenue_account_id,
             credit_amount=amount,
-            description=f"Revenue recognition - {description}"
+            description=f"Revenue recognition - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
         return entry
-    
+
     @staticmethod
     @enforce_tenant_isolation
-    def prorated_subscription_billing(service: LedgerService, customer_account_id: UUID,
-                                    revenue_account_id: UUID, full_amount: Decimal,
-                                    prorated_amount: Decimal, reference: str, 
-                                    description: str) -> JournalEntry:
-        """Create a journal entry for prorated subscription billing."""
+    def prorated_subscription_billing(
+        service: LedgerService,
+        customer_account_id: UUID,
+        revenue_account_id: UUID,
+        full_amount: Decimal,
+        prorated_amount: Decimal,
+        reference: str,
+        description: str,
+        currency: str = "MYR",
+        fx_rate: float = 1.0
+    ) -> JournalEntry:
+        """Create a journal entry for prorated subscription billing with multi-currency support."""
         entry = service.create_journal_entry(
             reference=reference,
             description=description
         )
-        
         # Debit customer account (accounts receivable)
         entry.add_line(
             account_id=customer_account_id,
             debit_amount=prorated_amount,
-            description=f"Prorated subscription billing - {description}"
+            description=f"Prorated subscription billing - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
         # Credit revenue account
         entry.add_line(
             account_id=revenue_account_id,
             credit_amount=prorated_amount,
-            description=f"Prorated subscription revenue - {description}"
+            description=f"Prorated subscription revenue - {description}",
+            currency=currency,
+            fx_rate=fx_rate
         )
-        
-        return entry 
+        return entry
+
+# Alias for backward compatibility with test imports
+SubscriptionJournalEntryTemplate = SubscriptionJournalEntryTemplates

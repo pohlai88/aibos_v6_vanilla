@@ -25,5 +25,18 @@ class NotificationService:
         # Stub: Send delegation notification
         print(f"[NOTIFY] Delegation sent to user {user_id} for workflow {workflow_instance.id}")
 
+    def send_compliance_violation(self, user_id: str, violations: list, context: dict = None):
+        # Stub: Send compliance violation notification (could be email, Slack, etc.)
+        print(f"[NOTIFY] Compliance violation for user {user_id}: {violations}")
+        # Here you could add logic to send to email, Slack, or call a webhook
+
+    def send_compliance_low_confidence(self, user_id: str, score: float, context: dict = None):
+        # Stub: Send notification when compliance confidence is low
+        print(f"[NOTIFY] Compliance confidence low for user {user_id}: score={score}")
+
+    def send_webhook(self, url: str, payload: dict):
+        # Stub: Send a generic webhook (POST request)
+        print(f"[NOTIFY] Webhook sent to {url} with payload: {payload}")
+
 # Singleton instance
-notification_service = NotificationService() 
+notification_service = NotificationService()

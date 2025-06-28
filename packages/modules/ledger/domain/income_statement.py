@@ -195,4 +195,17 @@ class IncomeStatementService:
         # Validate the income statement
         income_statement.validate()
         
-        return income_statement 
+        return income_statement
+
+# Minimal IncomeStatementItem for import compatibility
+from dataclasses import dataclass
+from typing import Optional
+from uuid import UUID
+from decimal import Decimal
+
+@dataclass
+class IncomeStatementItem:
+    account_id: Optional[UUID]
+    account_name: str = ""
+    amount: Decimal = Decimal('0')
+    tenant_id: Optional[UUID] = None
