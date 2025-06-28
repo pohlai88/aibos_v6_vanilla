@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from packages.modules.ledger.api.compliance_advisory import router as compliance_advisory_router
 from packages.modules.ledger.api.compliance_analytics import router as compliance_analytics_router
 from packages.modules.ledger.api.automation import router as automation_router
+from packages.modules.ledger.api.accuflow import router as accuflow_router
 
 app = FastAPI(
     title="AIBOS Accounting Platform",
@@ -54,6 +55,7 @@ AIBOS is a next-generation, automation-first, KPMG- and MFRS-powered accounting 
 
 See the interactive OpenAPI docs at `/docs` for all endpoints, schemas, and live testing.
 """
+)
 
 # Register compliance advisory API
 app.include_router(compliance_advisory_router)
@@ -61,6 +63,8 @@ app.include_router(compliance_advisory_router)
 app.include_router(compliance_analytics_router)
 # Register automation API
 app.include_router(automation_router)
+# Register AccuFlow AI API
+app.include_router(accuflow_router)
 
 # Add a root endpoint for health check/demo
 @app.get("/")

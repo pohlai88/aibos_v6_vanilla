@@ -118,9 +118,39 @@ class ProjectHealthAssessor:
             report.append("No outstanding TODOs or FIXMEs found.\n")
         return "\n".join(report)
 
+    def audit_task_tracker(self):
+        """
+        Audit the backend system using the task tracker to verify:
+        - All critical backend features are present and completed
+        - No backend feature gaps remain
+        - Audit log for each task is available
+        - Summary of system health is provided
+        """
+        try:
+            from packages.modules.ledger.services.task_tracker import tracker_service
+        except ImportError:
+            return {"error": "Task tracker module not found."}
+        tasks = tracker_service.list_tasks()
+        incomplete = [t for t in tasks if t["status"] != "completed"]
+        audit_issues = []
+        for t in tasks:
+            if not t.get("audit_log") or len(t["audit_log"]) == 0:
+                audit_issues.append(f"No audit log for task: {t['title']}")
+        summary = {
+            "total_tasks": len(tasks),
+            "completed": len([t for t in tasks if t["status"] == "completed"]),
+            "incomplete": len(incomplete),
+            "audit_issues": audit_issues,
+            "system_health": "PASS" if len(incomplete) == 0 and len(audit_issues) == 0 else "FAIL"
+        }
+        return summary
+
 if __name__ == "__main__":
     assessor = ProjectHealthAssessor()
     report = assessor.run_full_assessment()
     print(json.dumps(report, indent=2))
     print("\n---\n")
     print(assessor.generate_issue_report())
+    print("\n---\n")
+    print("System Audit Health Check:")
+    print(json.dumps(assessor.audit_task_tracker(), indent=2))

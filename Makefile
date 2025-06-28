@@ -67,4 +67,10 @@ docs: ## Generate API documentation
 	python scripts/generate_docs.py
 
 jupyter: ## Start Jupyter notebook
-	jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root 
+	jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+# NOTE: Alembic is present for migrations. To apply migrations, run:
+#   alembic upgrade head
+# Or use the Makefile target:
+#   make migrate
+# Ensure migrations are up to date before deployment.

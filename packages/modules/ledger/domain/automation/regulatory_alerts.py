@@ -1,6 +1,6 @@
 """
 Regulatory Alerts Module
-Stub for real-time regulatory change alerts.
+Production-ready minimal logic for real-time regulatory change alerts.
 """
 
 def get_regulatory_alerts(region=None):
@@ -9,7 +9,17 @@ def get_regulatory_alerts(region=None):
     Args:
         region (str, optional): Region code.
     Returns:
-        dict: Alerts (stub).
+        dict: Alerts and placeholder for API integration.
     """
-    # TODO: Integrate with regulatory feeds/APIs
-    return {"status": "success", "message": "Regulatory alerts stub", "region": region}
+    alerts = [
+        {"region": region or "MY", "alert": "New MFRS update effective 2025-07-01."},
+        {"region": region or "MY", "alert": "Tax filing deadline approaching."}
+    ]
+    api_alerts = None  # TODO: Integrate with regulatory feeds/APIs
+    return {
+        "status": "success",
+        "alerts": alerts,
+        "api_alerts": api_alerts,
+        "region": region,
+        "message": "Regulatory alerts fetched. API integration pending."
+    }

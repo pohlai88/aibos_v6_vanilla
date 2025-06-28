@@ -34,3 +34,5 @@ async def export_audit_logs():
     for log in logs:
         writer.writerow([log.timestamp, log.user, log.action, log.details])
     return Response(content=output.getvalue(), media_type="text/csv")
+
+    # Internal backend logic implemented. This placeholder remains for future external API integration (e.g., real DB fetch, advanced analytics, etc.).

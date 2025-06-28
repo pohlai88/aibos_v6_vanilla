@@ -44,6 +44,8 @@ dependencies = [
     "httpx>=0.25.0",
 ]
 
+# NOTE: psycopg2-binary is present for raw SQL support. SQLAlchemy is also present and recommended for all new DB access. Review all direct cursor usage for security and maintainability. Document any raw SQL queries for audit.
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
@@ -196,4 +198,4 @@ exclude_dirs = ["tests", "migrations"]
 skips = ["B101", "B601"]
 
 [tool.semgrep]
-config = "p/security-audit" 
+config = "p/security-audit"
