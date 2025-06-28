@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://aibos:aibos@db:5432/aibos_dev
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=aibos_dev
+      - POSTGRES_USER=aibos
+      - POSTGRES_PASSWORD=aibos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/modules/ledger/migrations:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Optional: Supabase local development
+  supabase:
+    image: supabase/supabase-dev
+    ports:
+      - "54321:54321"
+      - "54322:54322"
+    environment:
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - DASHBOARD_USERNAME=supabase
+      - DASHBOARD_PASSWORD=this_password_is_insecure_and_should_be_updated
+
+volumes:
+  postgres_data:
+  redis_data: 

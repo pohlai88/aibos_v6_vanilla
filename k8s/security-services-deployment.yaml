@@ -1,0 +1,382 @@
+# Kubernetes Deployment for Distributed Security Services
+# Active-active deployment pattern with circuit breakers and exponential backoff
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-audit-service
+  namespace: aibos
+  labels:
+    app: security-audit-service
+    tier: security
+    version: v1.1.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: security-audit-service
+  template:
+    metadata:
+      labels:
+        app: security-audit-service
+        tier: security
+        version: v1.1.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: audit-service
+        image: aibos/security-audit-service:1.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "security-audit-service"
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: CIRCUIT_BREAKER_FAILURE_THRESHOLD
+          value: "5"
+        - name: CIRCUIT_BREAKER_RECOVERY_TIMEOUT
+          value: "60"
+        - name: LOAD_BALANCER_ALGORITHM
+          value: "weighted"
+        - name: HEALTH_CHECK_INTERVAL
+          value: "30"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: kube-probe/1.0
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: kube-probe/1.0
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: varlog
+          mountPath: /var/log
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: varlog
+        emptyDir: {}
+      imagePullSecrets:
+      - name: registry-secret
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
+      tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - security-audit-service
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: security-audit-service
+  namespace: aibos
+  labels:
+    app: security-audit-service
+    tier: security
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: metrics
+  selector:
+    app: security-audit-service
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: security-audit-service-hpa
+  namespace: aibos
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: security-audit-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 2
+        periodSeconds: 15
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Min
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: security-audit-service-pdb
+  namespace: aibos
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: security-audit-service
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: security-audit-ingress
+  namespace: aibos
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "4k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - security-audit.aibos.com
+    secretName: security-audit-tls
+  rules:
+  - host: security-audit.aibos.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: security-audit-service
+            port:
+              number: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-audit-config
+  namespace: aibos
+data:
+  circuit-breaker.yaml: |
+    failure_threshold: 5
+    recovery_timeout: 60
+    half_open_max_calls: 3
+    timeout: 30
+  
+  load-balancer.yaml: |
+    algorithm: weighted
+    health_check_interval: 30
+    health_check_timeout: 5
+    max_retries: 3
+    retry_delay: 1
+  
+  security.yaml: |
+    jwt_secret: ${JWT_SECRET}
+    encryption_key: ${ENCRYPTION_KEY}
+    audit_log_level: INFO
+    compliance_mode: STRICT
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: security-audit-secrets
+  namespace: aibos
+type: Opaque
+data:
+  jwt_secret: ${JWT_SECRET_B64}
+  encryption_key: ${ENCRYPTION_KEY_B64}
+  redis_password: ${REDIS_PASSWORD_B64}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: security-audit-cleanup
+  namespace: aibos
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cleanup
+            image: aibos/security-audit-cleanup:1.0.0
+            env:
+            - name: REDIS_HOST
+              value: "redis-service"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: RETENTION_DAYS
+              value: "90"
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+          restartPolicy: OnFailure
+          serviceAccountName: security-audit-cleanup
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: security-audit-cleanup
+  namespace: aibos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: security-audit-cleanup
+  namespace: aibos
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: security-audit-cleanup
+  namespace: aibos
+subjects:
+- kind: ServiceAccount
+  name: security-audit-cleanup
+  namespace: aibos
+roleRef:
+  kind: Role
+  name: security-audit-cleanup
+  apiGroup: rbac.authorization.k8s.io 
