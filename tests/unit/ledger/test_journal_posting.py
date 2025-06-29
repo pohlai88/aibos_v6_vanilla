@@ -11,10 +11,23 @@ import pytest
 from decimal import Decimal
 from uuid import uuid4, UUID
 from packages.modules.ledger.domain.journal_entries import LedgerService, AccountType, JournalEntry, TransactionType
-# Ensure tenant context is set before any test runs
-from packages.modules.ledger.domain.tenant_service import set_tenant_context
-# Set tenant context as a UUID object, not a string
-set_tenant_context(uuid4())
+from packages.modules.ledger.domain.tenant_service import TenantConfig, set_tenant_context, clear_tenant_context
+
+@pytest.fixture(autouse=True)
+def default_tenant_context():
+    tenant_id = uuid4()
+    tenant_config = TenantConfig(
+        tenant_id=tenant_id,
+        name="Test Tenant",
+        default_currency="MYR",
+        fiscal_year_start_month=1,
+        fiscal_year_start_day=1,
+        timezone="Asia/Kuala_Lumpur",
+        country_code="MY"
+    )
+    set_tenant_context(tenant_id, tenant_config)
+    yield
+    clear_tenant_context()
 
 @pytest.fixture
 def ledger_service(monkeypatch):

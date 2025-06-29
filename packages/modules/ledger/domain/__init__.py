@@ -4,9 +4,9 @@ Core domain models and services for the ledger module.
 """
 
 # Core domain models
-from .balance_sheet import BalanceSheet, BalanceSheetItem
+from .balance_sheet import BalanceSheet, BalanceSheetItem, BalanceSheetService, BalanceSheetSection
 from .income_statement import IncomeStatement, IncomeStatementItem
-from .journal_entries import JournalEntry, JournalEntryLine, JournalEntryTemplate
+from .journal_entries import JournalEntry, JournalEntryLine, JournalEntryTemplate, LedgerService, AccountType, TransactionType, Account, AccountSubType, Currency, JournalEntryTemplates
 from .automated_validation import AutomatedValidation
 from .financial_validation import FinancialValidation
 from .countries import Country, Currency
@@ -22,7 +22,7 @@ from .subscription_module import (
     SubscriptionInvoice, BillingCycle, RevenueRecognitionService,
     SubscriptionJournalEntryTemplate, BillingPeriod
 )
-from .tenant_service import TenantService
+from .tenant_service import TenantService, TenantConfig, set_tenant_context, get_current_tenant_id, get_current_tenant_config, clear_tenant_context
 from .white_label_service import WhiteLabelService
 from .workflow_engine import WorkflowEngine, WorkflowStep, WorkflowTransition
 
@@ -45,11 +45,20 @@ __all__ = [
     # Core financial models
     'BalanceSheet',
     'BalanceSheetItem',
+    'BalanceSheetService',
+    'BalanceSheetSection',
     'IncomeStatement', 
     'IncomeStatementItem',
     'JournalEntry',
     'JournalEntryLine',
     'JournalEntryTemplate',
+    'JournalEntryTemplates',
+    'LedgerService',
+    'AccountType',
+    'TransactionType',
+    'Account',
+    'AccountSubType',
+    'Currency',
     
     # Validation services
     'AutomatedValidation',
@@ -66,6 +75,11 @@ __all__ = [
     'Role',
     'Permission',
     'TenantService',
+    'TenantConfig',
+    'set_tenant_context',
+    'get_current_tenant_id',
+    'get_current_tenant_config',
+    'clear_tenant_context',
     'WhiteLabelService',
     'WorkflowEngine',
     'WorkflowStep',

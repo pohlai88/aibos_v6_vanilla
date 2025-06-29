@@ -225,13 +225,14 @@ class TestTenantSupport:
     
     def test_tenant_isolation_decorator(self, malaysian_tenant):
         """Test the enforce_tenant_isolation decorator."""
-        from packages.modules.ledger.domain.tenant_service import enforce_tenant_isolation
+        from packages.modules.ledger.domain.tenant_service import enforce_tenant_isolation, clear_tenant_context
         
         @enforce_tenant_isolation
         def test_function():
             return "success"
         
         # Should fail without tenant context
+        clear_tenant_context()  # Clear any existing context
         with pytest.raises(ValueError, match="Tenant context not set"):
             test_function()
         

@@ -437,7 +437,7 @@ class TestSubscriptionModule:
         # Get account IDs
         accounts = list(ledger_service.accounts.values())
         ar_account = next(acc for acc in accounts if acc.code == "1200")
-        revenue_account = next(acc for accounts if acc.code == "4000")
+        revenue_account = next(acc for acc in accounts if acc.code == "4000")
         
         # Create template and invoice
         template = subscription_service.create_recurring_template(

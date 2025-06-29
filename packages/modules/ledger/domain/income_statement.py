@@ -58,6 +58,21 @@ class IncomeStatement:
     period_end: datetime
     revenue: IncomeStatementSection = field(default_factory=lambda: IncomeStatementSection("Revenue"))
     expenses: IncomeStatementSection = field(default_factory=lambda: IncomeStatementSection("Expenses"))
+    tenant_id: Optional[UUID] = None
+    
+    def __post_init__(self):
+        # Set tenant_id from context if not provided
+        if self.tenant_id is None:
+            from .tenant_service import get_current_tenant_id
+            self.tenant_id = get_current_tenant_id()
+            if self.tenant_id is None:
+                raise ValueError("Tenant context not set. Call set_tenant_context() first.")
+        
+        # Ensure all sections have the same tenant_id
+        if self.revenue.tenant_id != self.tenant_id:
+            self.revenue.tenant_id = self.tenant_id
+        if self.expenses.tenant_id != self.tenant_id:
+            self.expenses.tenant_id = self.tenant_id
     
     @property
     def total_revenue(self) -> Decimal:

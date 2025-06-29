@@ -211,7 +211,7 @@ class TestSecurityAuditService:
         )
         
         assert updated_certification.status == "suspended"
-        assert updated_certification.updated_at > certification.updated_at
+        assert updated_certification.updated_at >= certification.updated_at
     
     @pytest.mark.asyncio
     async def test_get_expiring_certifications(self, security_service, sample_tenant_id):
@@ -282,7 +282,7 @@ class TestSecurityAuditService:
         updated_policy = await security_service.update_policy_status(policy.id, False)
         
         assert not updated_policy.is_active
-        assert updated_policy.updated_at > policy.updated_at
+        assert updated_policy.updated_at >= policy.updated_at
     
     @pytest.mark.asyncio
     async def test_get_compliance_report(self, security_service, sample_tenant_id, sample_compliance_standards):

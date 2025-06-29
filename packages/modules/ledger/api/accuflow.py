@@ -81,7 +81,7 @@ def pre_close_validation(rules: dict, period: str) -> dict:
         200: {"description": "Validation result.", "content": {"application/json": {"example": {"status": "pending", "rules": {"all_accounts_reconciled": True}, "period": "2025-Q2", "message": "Pre-close validation logic pending."}}}}
     }
 )
-def pre_close_validation_endpoint(rules: dict = Body(..., example={"all_accounts_reconciled": True}), period: str = Body(..., example="2025-Q2")):
+def pre_close_validation_endpoint(rules: dict = Body(..., examples={"all_accounts_reconciled": True}), period: str = Body(..., examples="2025-Q2")):
     """
     Run pre-close validation checks before period close. User can customize rules.
     - **Request body:**
@@ -104,7 +104,7 @@ def approval_workflow(entry: dict, chain: List[str]) -> dict:
         200: {"description": "Approval workflow result.", "content": {"application/json": {"example": {"entry": {"amount": 1000}, "chain": ["manager", "controller", "CFO"], "status": "pending", "message": "Approval workflow logic pending."}}}}
     }
 )
-def approval_workflow_endpoint(entry: dict = Body(..., example={"amount": 1000}), chain: List[str] = Body(..., example=["manager", "controller", "CFO"])):
+def approval_workflow_endpoint(entry: dict = Body(..., examples={"amount": 1000}), chain: List[str] = Body(..., examples=["manager", "controller", "CFO"])):
     """
     Submit entry for approval workflow. User can customize approval chain.
     - **Request body:**
@@ -137,8 +137,8 @@ def approval_workflow_endpoint(entry: dict = Body(..., example={"amount": 1000})
     }
 )
 def post_journal(
-    entry_data: dict = Body(..., example={"amount": 1000, "date": "2025-06-01"}),
-    source: Optional[str] = Body("API", example="API"),
+    entry_data: dict = Body(..., examples={"amount": 1000, "date": "2025-06-01"}),
+    source: Optional[str] = Body("API", examples="API"),
     permission: None = Depends(require_permission("post"))
 ):
     """
@@ -264,13 +264,13 @@ def audit_trail(entry_id: str):
         }
     }
 )
-def budgeting_forecasting_endpoint(budget_inputs: dict = Body(..., example={"historical": [9000, 9500, 10500], "budget": 10000}), forecast_params: dict = Body(None, example={"periods": 1})):
+def budgeting_forecasting_endpoint(budget_inputs: dict = Body(..., examples={"historical": [9000, 9500, 10500], "budget": 10000}), forecast_params: dict = Body(None, examples={"periods": 1})):
     """
-    Automate budgeting and forecasting process.
+    Automate budgeting and forecasting.
     - **Request body:**
-        - `budget_inputs`: dict with 'historical' (list of numbers) and 'budget' (number)
-        - `forecast_params`: dict with forecasting parameters (e.g., periods)
-    - **Returns:** Budget, forecast, and AI/ML placeholder
+        - `budget_inputs`: dict of budget inputs
+        - `forecast_params`: dict of forecast parameters
+    - **Returns:** Budget and forecast results
     """
     return budgeting_forecasting(budget_inputs, forecast_params)
 
@@ -296,13 +296,13 @@ def budgeting_forecasting_endpoint(budget_inputs: dict = Body(..., example={"his
         }
     }
 )
-def fx_sensitivity_endpoint(data: dict = Body(..., example={"USD": 1000, "EUR": 500}), scenarios: list = Body(None, example=[{"USD": 1.1, "EUR": 0.9}])):
+def fx_sensitivity_endpoint(data: dict = Body(..., examples={"USD": 1000, "EUR": 500}), scenarios: list = Body(None, examples=[{"USD": 1.1, "EUR": 0.9}])):
     """
-    Analyze FX sensitivity for given financial data and scenarios.
+    Analyze FX sensitivity for financial data.
     - **Request body:**
-        - `data`: dict of currency exposures
-        - `scenarios`: list of FX rate scenarios
-    - **Returns:** Sensitivity results for each scenario
+        - `data`: dict of financial data
+        - `scenarios`: list of FX scenarios
+    - **Returns:** FX sensitivity results
     """
     return fx_sensitivity_analysis(data, scenarios)
 
@@ -331,13 +331,13 @@ def fx_sensitivity_endpoint(data: dict = Body(..., example={"USD": 1000, "EUR": 
         }
     }
 )
-def period_close_orchestration_endpoint(period: str = Body(..., example="2025-Q2"), tasks: list = Body(None, example=[{"name": "Reconcile accounts", "status": "pending"}])):
+def period_close_orchestration_endpoint(period: str = Body(..., examples="2025-Q2"), tasks: list = Body(None, examples=[{"name": "Reconcile accounts", "status": "pending"}])):
     """
     Orchestrate and track period-close process.
     - **Request body:**
-        - `period`: period identifier (e.g., '2025-Q2')
-        - `tasks`: list of close tasks (dicts with 'name', 'status')
-    - **Returns:** Orchestration status and task progress
+        - `period`: period identifier
+        - `tasks`: list of tasks
+    - **Returns:** Period-close orchestration status
     """
     return orchestrate_period_close(period, tasks)
 
@@ -362,12 +362,11 @@ def period_close_orchestration_endpoint(period: str = Body(..., example="2025-Q2
         }
     }
 )
-def disclosure_language_ai_endpoint(context: dict = Body(..., example={"topic": "Revenue Recognition"})):
+def disclosure_language_ai_endpoint(context: dict = Body(..., examples={"topic": "Revenue Recognition"})):
     """
-    Suggest disclosure language based on context using AI/LLM.
-    - **Request body:**
-        - `context`: dict with disclosure context (e.g., topic)
-    - **Returns:** Suggested language and AI/LLM placeholder
+    Suggest disclosure language using AI.
+    - **Request body:** Context dict
+    - **Returns:** Disclosure language suggestion
     """
     return suggest_disclosure_language(context)
 
@@ -392,13 +391,13 @@ def disclosure_language_ai_endpoint(context: dict = Body(..., example={"topic": 
         }
     }
 )
-def efile_export_endpoint(data: dict = Body(..., example={"revenue": 1000, "expenses": 800}), format: str = Body('XBRL', example="XBRL")):
+def efile_export_endpoint(data: dict = Body(..., examples={"revenue": 1000, "expenses": 800}), format: str = Body('XBRL', examples="XBRL")):
     """
-    Generate e-file export for regulatory submission.
+    Generate regulatory e-file export.
     - **Request body:**
-        - `data`: dict of financial data
-        - `format`: export format (e.g., 'XBRL', 'CSV')
-    - **Returns:** Export result and placeholder for real export logic
+        - `data`: dict of data to export
+        - `format`: export format
+    - **Returns:** E-file export result
     """
     return generate_efile_export(data, format)
 
@@ -429,9 +428,8 @@ def efile_export_endpoint(data: dict = Body(..., example={"revenue": 1000, "expe
 def regulatory_alerts_endpoint(region: str = None):
     """
     Fetch regulatory alerts for a region.
-    - **Query param:**
-        - `region`: region code (optional)
-    - **Returns:** Alerts and API integration placeholder
+    - **Query params:** region (optional)
+    - **Returns:** Regulatory alerts
     """
     return get_regulatory_alerts(region)
 
@@ -456,12 +454,11 @@ def regulatory_alerts_endpoint(region: str = None):
         }
     }
 )
-def blockchain_audit_endpoint(entry: dict = Body(..., example={"action": "post_journal", "amount": 1000})):
+def blockchain_audit_endpoint(entry: dict = Body(..., examples={"action": "post_journal", "amount": 1000})):
     """
     Record and verify audit trail on blockchain.
-    - **Request body:**
-        - `entry`: dict of audit entry data
-    - **Returns:** Blockchain audit result and hash
+    - **Request body:** Entry dict
+    - **Returns:** Blockchain audit result
     """
     return blockchain_audit_trail(entry)
 
@@ -488,13 +485,13 @@ def blockchain_audit_endpoint(entry: dict = Body(..., example={"action": "post_j
         }
     }
 )
-def benchmarking_endpoint(data: dict = Body(..., example={"revenue": 1000}), peer_group: list = Body(None, example=[{"revenue": 1200}])):
+def benchmarking_endpoint(data: dict = Body(..., examples={"revenue": 1000}), peer_group: list = Body(None, examples=[{"revenue": 1200}])):
     """
     Benchmark financials against peer group.
     - **Request body:**
-        - `data`: dict of company financials
-        - `peer_group`: list of peer companies (dicts)
-    - **Returns:** Benchmarking results and analytics placeholder
+        - `data`: dict of company data
+        - `peer_group`: list of peer data
+    - **Returns:** Benchmarking results
     """
     return benchmark_financials(data, peer_group)
 
@@ -521,13 +518,13 @@ def benchmarking_endpoint(data: dict = Body(..., example={"revenue": 1000}), pee
         }
     }
 )
-def transfer_pricing_endpoint(transactions: list = Body(..., example=[{"price": 100, "cost": 80}]), policies: dict = Body(None, example={"min_margin": 10})):
+def transfer_pricing_endpoint(transactions: list = Body(..., examples=[{"price": 100, "cost": 80}]), policies: dict = Body(None, examples={"min_margin": 10})):
     """
     Analyze transfer pricing for compliance.
     - **Request body:**
-        - `transactions`: list of intercompany transactions (dicts)
-        - `policies`: dict of transfer pricing policies
-    - **Returns:** Analysis results and compliance engine placeholder
+        - `transactions`: list of transactions
+        - `policies`: dict of policies
+    - **Returns:** Transfer pricing analysis results
     """
     return transfer_pricing_analysis(transactions, policies)
 
@@ -558,10 +555,9 @@ def transfer_pricing_endpoint(transactions: list = Body(..., example=[{"price": 
 )
 def kri_dashboard_endpoint(params: dict = None):
     """
-    Generate KRI dashboard data.
-    - **Query param:**
-        - `params`: dashboard parameters (optional)
-    - **Returns:** KRI dashboard data and analytics placeholder
+    Get KRI dashboard data.
+    - **Query params:** params (optional)
+    - **Returns:** KRI dashboard data
     """
     return get_kri_dashboard_data(params)
 
@@ -587,13 +583,13 @@ def kri_dashboard_endpoint(params: dict = None):
         }
     }
 )
-def ai_chatbot_endpoint(query: str = Body(..., example="What is MFRS 15?"), context: dict = Body(None, example=None)):
+def ai_chatbot_endpoint(query: str = Body(..., examples="What is MFRS 15?"), context: dict = Body(None, examples=None)):
     """
-    Respond to user queries with AI/LLM chatbot.
+    AI-powered compliance and finance chatbot.
     - **Request body:**
-        - `query`: user query string
-        - `context`: dict with context (optional)
-    - **Returns:** Chatbot response and LLM/AI placeholder
+        - `query`: query string
+        - `context`: context dict
+    - **Returns:** Chatbot response
     """
     return ai_chatbot_query(query, context)
 
@@ -621,13 +617,13 @@ def ai_chatbot_endpoint(query: str = Body(..., example="What is MFRS 15?"), cont
         }
     }
 )
-def tax_calculation_endpoint(transaction: dict = Body(..., example={"amount": 1000}), tax_type: str = Body("GST", example="GST")):
+def tax_calculation_endpoint(transaction: dict = Body(..., examples={"amount": 1000}), tax_type: str = Body("GST", examples="GST")):
     """
-    Calculate tax for a transaction (GST/SST, VAT, WHT, LHDN integration).
+    Calculate tax for a transaction.
     - **Request body:**
-        - `transaction`: dict with transaction data (amount, type, etc.)
-        - `tax_type`: type of tax (GST, VAT, WHT, etc.)
-    - **Returns:** Tax calculation result and LHDN integration placeholder
+        - `transaction`: dict of transaction data
+        - `tax_type`: type of tax
+    - **Returns:** Tax calculation result
     """
     return calculate_tax(transaction, tax_type)
 
@@ -651,13 +647,13 @@ def tax_calculation_endpoint(transaction: dict = Body(..., example={"amount": 10
         }
     }
 )
-def fixed_asset_depreciation_endpoint(asset: dict = Body(..., example={"cost": 10000, "useful_life": 5, "residual_value": 0}), method: str = Body("straight_line", example="straight_line")):
+def fixed_asset_depreciation_endpoint(asset: dict = Body(..., examples={"cost": 10000, "useful_life": 5, "residual_value": 0}), method: str = Body("straight_line", examples="straight_line")):
     """
-    Calculate depreciation for a fixed asset (MFRS-compliant).
+    Calculate depreciation for a fixed asset.
     - **Request body:**
-        - `asset`: dict with asset data (cost, useful_life, residual_value, etc.)
-        - `method`: depreciation method (straight_line, reducing_balance)
-    - **Returns:** Depreciation calculation result and component accounting placeholder
+        - `asset`: dict of asset data
+        - `method`: depreciation method
+    - **Returns:** Depreciation calculation result
     """
     return calculate_depreciation(asset, method)
 
@@ -681,13 +677,13 @@ def fixed_asset_depreciation_endpoint(asset: dict = Body(..., example={"cost": 1
         }
     }
 )
-def inventory_valuation_endpoint(items: list = Body(..., example=[{"qty": 10, "cost": 100, "type": "in"}]), method: str = Body("FIFO", example="FIFO")):
+def inventory_valuation_endpoint(items: list = Body(..., examples=[{"qty": 10, "cost": 100, "type": "in"}]), method: str = Body("FIFO", examples="FIFO")):
     """
-    Calculate inventory valuation (FIFO, LIFO, Weighted Average, BOM integration).
+    Calculate inventory valuation.
     - **Request body:**
-        - `items`: list of inventory transactions (dicts)
-        - `method`: valuation method (FIFO, LIFO, Weighted Average)
-    - **Returns:** Inventory valuation result and BOM integration placeholder
+        - `items`: list of inventory items
+        - `method`: valuation method
+    - **Returns:** Inventory valuation result
     """
     return calculate_inventory_valuation(items, method)
 
@@ -714,19 +710,22 @@ def inventory_valuation_endpoint(items: list = Body(..., example=[{"qty": 10, "c
     }
 )
 def payroll_calculation_endpoint(
-    employee: dict = Body(..., example={"salary": 5000, "allowances": 0, "deductions": 0}),
-    period: str = Body(..., example="2025-06"),
-    include_statutory: bool = Body(True, example=True),
-    source: Optional[str] = Body("API", example="API"),
+    employee: dict = Body(..., examples={"salary": 5000, "allowances": 0, "deductions": 0}),
+    period: str = Body(..., examples="2025-06"),
+    include_statutory: bool = Body(True, examples=True),
+    source: Optional[str] = Body("API", examples="API"),
     permission: None = Depends(require_permission("post"))
 ):
     """
-    Calculate payroll for an employee (PCB/EPF/SOCSO/EIS, payslip, leave) with source attribution.
-    - **Request body:** Employee data (dict) with 'source' field
-    - **Returns:** Payroll calculation result and payslip/leave placeholder
+    Calculate payroll for an employee.
+    - **Request body:**
+        - `employee`: dict of employee data
+        - `period`: payroll period
+        - `include_statutory`: include statutory deductions
+        - `source`: source of the entry
+    - **Returns:** Payroll calculation result
     """
     employee["source"] = source
-    # Internal backend logic implemented. This placeholder remains for future external API integration (e.g., payslip/leave provider).
     return calculate_payroll(employee, period, include_statutory)
 
 @router.post(
@@ -748,13 +747,13 @@ def payroll_calculation_endpoint(
         }
     }
 )
-def cash_flow_statement_endpoint(transactions: list = Body(..., example=[{"type": "inflow", "amount": 7000}, {"type": "outflow", "amount": 2000}]), method: str = Body("direct", example="direct")):
+def cash_flow_statement_endpoint(transactions: list = Body(..., examples=[{"type": "inflow", "amount": 7000}, {"type": "outflow", "amount": 2000}]), method: str = Body("direct", examples="direct")):
     """
-    Generate cash flow statement (direct/indirect method).
+    Generate cash flow statement.
     - **Request body:**
-        - `transactions`: list of transactions (dicts)
-        - `method`: method (direct, indirect)
-    - **Returns:** Cash flow statement result and indirect method placeholder
+        - `transactions`: list of transactions
+        - `method`: cash flow method
+    - **Returns:** Cash flow statement result
     """
     return generate_cash_flow_statement(transactions, method)
 
@@ -777,17 +776,18 @@ def cash_flow_statement_endpoint(transactions: list = Body(..., example=[{"type"
     }
 )
 def cost_center_entry_endpoint(
-    entry: dict = Body(..., example={"amount": 1000, "account": "4000", "cost_center": "IT"}),
-    source: Optional[str] = Body("API", example="API"),
+    entry: dict = Body(..., examples={"amount": 1000, "account": "4000", "cost_center": "IT"}),
+    source: Optional[str] = Body("API", examples="API"),
     permission: None = Depends(require_permission("post"))
 ):
     """
-    Post a journal entry with cost center tagging and source attribution.
-    - **Request body:** Entry data (dict) with 'source' field
+    Post a journal entry with cost center tagging.
+    - **Request body:**
+        - `entry`: dict of entry data
+        - `source`: source of the entry
     - **Returns:** Entry with cost center info
     """
     entry["source"] = source
-    # Internal backend logic implemented. This placeholder remains for future external API integration (e.g., cost center analytics provider).
     return post_cost_center_entry(entry)
 
 @router.post(
@@ -810,11 +810,11 @@ def cost_center_entry_endpoint(
         }
     }
 )
-def cost_center_report_endpoint(entries: list = Body(..., example=[{"amount": 1000, "cost_center": "IT"}, {"amount": 1000, "cost_center": "IT"}]), cost_center: str = Body(..., example="IT")):
+def cost_center_report_endpoint(entries: list = Body(..., examples=[{"amount": 1000, "cost_center": "IT"}, {"amount": 1000, "cost_center": "IT"}]), cost_center: str = Body(..., examples="IT")):
     """
-    Summarize entries for a given cost center.
+    Report by cost center.
     - **Request body:**
-        - `entries`: list of entries (dicts)
+        - `entries`: list of entries
         - `cost_center`: cost center identifier
     - **Returns:** Summary for the cost center
     """
@@ -840,17 +840,18 @@ def cost_center_report_endpoint(entries: list = Body(..., example=[{"amount": 10
     }
 )
 def inter_company_entry_endpoint(
-    entry: dict = Body(..., example={"amount": 1000, "from_company": "A", "to_company": "B"}),
-    source: Optional[str] = Body("API", example="API"),
+    entry: dict = Body(..., examples={"amount": 1000, "from_company": "A", "to_company": "B"}),
+    source: Optional[str] = Body("API", examples="API"),
     permission: None = Depends(require_permission("post"))
 ):
     """
-    Post an inter-company journal entry (mirrored for both entities) with source attribution.
-    - **Request body:** Entry data (dict) with 'source' field
+    Post an inter-company journal entry.
+    - **Request body:**
+        - `entry`: dict of entry data
+        - `source`: source of the entry
     - **Returns:** Mirrored entries for both companies
     """
     entry["source"] = source
-    # Internal backend logic implemented. This placeholder remains for future external API integration (e.g., inter-company elimination provider).
     return post_inter_company_entry(entry)
 
 @router.post(
@@ -871,11 +872,10 @@ def inter_company_entry_endpoint(
         }
     }
 )
-def inter_company_reconcile_endpoint(entries: list = Body(..., example=[{"amount": 1000, "from_company": "A", "to_company": "B"}, {"amount": -1000, "from_company": "B", "to_company": "A"}])):
+def inter_company_reconcile_endpoint(entries: list = Body(..., examples=[{"amount": 1000, "from_company": "A", "to_company": "B"}, {"amount": -1000, "from_company": "B", "to_company": "A"}])):
     """
     Reconcile inter-company balances.
-    - **Request body:**
-        - `entries`: list of inter-company entries (dicts)
+    - **Request body:** List of entries
     - **Returns:** Reconciliation result
     """
     return reconcile_inter_company(entries)
@@ -899,13 +899,13 @@ def inter_company_reconcile_endpoint(entries: list = Body(..., example=[{"amount
         }
     }
 )
-def consolidated_report_endpoint(entities: list = Body(..., example=[{"revenue": 10000, "expenses": 7000}, {"revenue": 10000, "expenses": 8000}]), eliminate_intercompany: bool = Body(True, example=True)):
+def consolidated_report_endpoint(entities: list = Body(..., examples=[{"revenue": 10000, "expenses": 7000}, {"revenue": 10000, "expenses": 8000}]), eliminate_intercompany: bool = Body(True, examples=True)):
     """
     Generate consolidated report for parent-child companies.
     - **Request body:**
-        - `entities`: list of entity reports (dicts)
-        - `eliminate_intercompany`: whether to eliminate inter-company balances
-    - **Returns:** Consolidated report and elimination details
+        - `entities`: list of entities
+        - `eliminate_intercompany`: eliminate inter-company transactions
+    - **Returns:** Consolidated report result
     """
     return consolidate_reports(entities, eliminate_intercompany)
 

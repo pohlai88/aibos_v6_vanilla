@@ -2,6 +2,19 @@ from datetime import datetime
 import os
 from typing import Optional, Dict, Any
 import json
+from uuid import UUID
+from decimal import Decimal
+
+class AuditJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for audit logging that handles UUID and Decimal objects."""
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            return str(obj)
+        if isinstance(obj, Decimal):
+            return str(obj)
+        if hasattr(obj, 'isoformat'):  # Handle datetime objects
+            return obj.isoformat()
+        return super().default(obj)
 
 class AuditLogger:
     """Audit logger for compliance and traceability. Extend for integration with external systems."""
@@ -52,7 +65,7 @@ class AuditLogger:
         }
         
         with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(event_data) + "\n")
+            f.write(json.dumps(event_data, cls=AuditJSONEncoder) + "\n")
     
     def log_data_access(
         self,

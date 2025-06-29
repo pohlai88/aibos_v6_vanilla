@@ -206,6 +206,13 @@ class JournalEntry:
             self.tenant_id = get_current_tenant_id()
             if self.tenant_id is None:
                 raise ValueError("Tenant context not set. Call set_tenant_context() first.")
+        
+        # Set base_currency from tenant context if not provided
+        if self.base_currency == Currency.MYR.value:  # Only override if using default
+            from .tenant_service import get_current_tenant_config
+            tenant_config = get_current_tenant_config()
+            if tenant_config:
+                self.base_currency = tenant_config.default_currency
     
     def add_line(self, account_id: UUID, debit_amount: Decimal = Decimal('0'), 
                  credit_amount: Decimal = Decimal('0'), description: str = "", 

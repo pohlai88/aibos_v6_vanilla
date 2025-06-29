@@ -1,22 +1,25 @@
 version: '3.8'
 
 services:
-  app:
+  # AIBOS Application
+  aibos:
     build: .
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://aibos:aibos@db:5432/aibos_dev
+      - DATABASE_URL=postgresql://aibos:aibos@postgres:5432/aibos_dev
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=development
-    volumes:
-      - .:/app
+      - DEBUG=true
     depends_on:
-      - db
+      - postgres
       - redis
-    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
 
-  db:
+  # PostgreSQL Database
+  postgres:
     image: postgres:15
     environment:
       - POSTGRES_DB=aibos_dev
@@ -26,26 +29,28 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./packages/modules/ledger/migrations:/docker-entrypoint-initdb.d
+    restart: unless-stopped
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: unless-stopped
 
-  # Optional: Supabase local development
-  supabase:
-    image: supabase/supabase-dev
+  # HAProxy Load Balancer (optional)
+  haproxy:
+    image: haproxy:2.8
     ports:
-      - "54321:54321"
-      - "54322:54322"
-    environment:
-      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
-      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
-      - DASHBOARD_USERNAME=supabase
-      - DASHBOARD_PASSWORD=this_password_is_insecure_and_should_be_updated
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - aibos
+    restart: unless-stopped
 
 volumes:
   postgres_data:

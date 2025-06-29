@@ -6,22 +6,22 @@ class TestFinancialInstruments:
     def test_loan_classification(self):
         """Test that loans are classified as Amortized Cost"""
         loan = FinancialInstrument("loan")
-        assert loan.category == "Amortized Cost"
+        assert loan.category_name == "Amortized Cost"
     
     def test_receivable_classification(self):
         """Test that receivables are classified as Amortized Cost"""
         receivable = FinancialInstrument("receivable")
-        assert receivable.category == "Amortized Cost"
+        assert receivable.category_name == "Amortized Cost"
     
     def test_investment_classification(self):
         """Test that investments are classified as FVTPL"""
         investment = FinancialInstrument("investment")
-        assert investment.category == "FVTPL"
+        assert investment.category_name == "FVTPL"
     
     def test_other_instrument_classification(self):
         """Test that other instruments are classified as FVTPL"""
         other = FinancialInstrument("derivative")
-        assert other.category == "FVTPL"
+        assert other.category_name == "FVTPL"
     
     def test_impairment_calculation(self):
         """Test MFRS 9.5.5 expected credit loss calculation"""
@@ -42,6 +42,6 @@ class TestFinancialInstruments:
         assert investment.calculate_impairment() == Decimal("0.03")
         
         # Classification should be correct
-        assert loan.category == "Amortized Cost"
-        assert receivable.category == "Amortized Cost"
-        assert investment.category == "FVTPL" 
+        assert loan.category_name == "Amortized Cost"
+        assert receivable.category_name == "Amortized Cost"
+        assert investment.category_name == "FVTPL" 

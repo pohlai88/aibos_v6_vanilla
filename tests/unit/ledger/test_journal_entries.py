@@ -4,11 +4,30 @@ Unit tests for the journal entries module.
 
 import pytest
 from decimal import Decimal
-from uuid import uuid4
+from uuid import uuid4, UUID
+from datetime import datetime
+from packages.modules.ledger.domain.tenant_service import TenantConfig, set_tenant_context, clear_tenant_context
 
 from packages.modules.ledger.domain.journal_entries import (
     Account, AccountType, JournalEntry, LedgerService, TransactionType
 )
+
+
+@pytest.fixture(autouse=True)
+def default_tenant_context():
+    tenant_id = uuid4()
+    tenant_config = TenantConfig(
+        tenant_id=tenant_id,
+        name="Test Tenant",
+        default_currency="MYR",
+        fiscal_year_start_month=1,
+        fiscal_year_start_day=1,
+        timezone="Asia/Kuala_Lumpur",
+        country_code="MY"
+    )
+    set_tenant_context(tenant_id, tenant_config)
+    yield
+    clear_tenant_context()
 
 
 class TestAccount:
@@ -42,28 +61,44 @@ class TestJournalEntry:
         assert line.account_id == account_id
         assert line.debit_amount == Decimal('100.00')
     
-    def test_validate_balanced_entry(self):
+    def test_validate_balanced_entry(self, monkeypatch):
         """Test validation of a balanced entry."""
-        entry = JournalEntry(reference="TEST-001", description="Test entry")
+        monkeypatch.setattr(
+            "packages.modules.ledger.domain.journal_entries.get_compliance_report",
+            lambda entity_id: {"compliance_score": 100}
+        )
+        entry = JournalEntry(
+            reference="TEST-001",
+            description="Test entry",
+            user_id="test_user",
+            entity_id="test_entity",
+            originating_module="test_module"
+        )
         account1_id = uuid4()
         account2_id = uuid4()
-        
         entry.add_line(account1_id, debit_amount=Decimal('100.00'))
         entry.add_line(account2_id, credit_amount=Decimal('100.00'))
-        
-        assert entry.validate() is True
-    
+        result = entry.validate()
+        assert isinstance(result, dict)
+        assert result["valid"] is True
+
     def test_validate_unbalanced_entry_raises_error(self):
         """Test that validation of unbalanced entry raises ValueError."""
-        entry = JournalEntry(reference="TEST-001", description="Test entry")
+        entry = JournalEntry(
+            reference="TEST-001",
+            description="Test entry",
+            user_id="test_user",
+            entity_id="test_entity",
+            originating_module="test_module"
+        )
         account1_id = uuid4()
         account2_id = uuid4()
-        
         entry.add_line(account1_id, debit_amount=Decimal('100.00'))
         entry.add_line(account2_id, credit_amount=Decimal('50.00'))
-        
-        with pytest.raises(ValueError):
-            entry.validate()
+        result = entry.validate()
+        assert isinstance(result, dict)
+        assert result["valid"] is False
+        assert any("Debits and credits must balance." in err for err in result["errors"])
 
 
 class TestLedgerService:
