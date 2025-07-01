@@ -8,7 +8,7 @@ console.log('main.tsx: Starting app initialization')
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename="/aibos_v6_vanilla">
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>,
