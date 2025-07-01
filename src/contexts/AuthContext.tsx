@@ -27,11 +27,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
   const supabase = useSupabase()
 
+  console.log('AuthProvider: Initializing')
+
   useEffect(() => {
+    console.log('AuthProvider: Setting up auth listeners')
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('AuthProvider: Error getting session:', error)
+      } else {
+        console.log('AuthProvider: Initial session loaded:', session ? 'yes' : 'no')
+      }
       setSession(session)
       setUser(session?.user ?? null)
+      setLoading(false)
+    }).catch(error => {
+      console.error('AuthProvider: Failed to get session:', error)
       setLoading(false)
     })
 
@@ -39,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('AuthProvider: Auth state changed:', _event)
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -48,24 +61,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [supabase.auth])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('AuthProvider: Sign in error:', error)
+      throw error
+    }
   }
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-    if (error) throw error
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('AuthProvider: Sign up error:', error)
+      throw error
+    }
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+    } catch (error) {
+      console.error('AuthProvider: Sign out error:', error)
+      throw error
+    }
   }
 
   const value: AuthContextType = {
@@ -76,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
   }
+
+  console.log('AuthProvider: Rendering with user:', user ? 'yes' : 'no', 'loading:', loading)
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 } 
