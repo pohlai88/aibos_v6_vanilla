@@ -1,4 +1,3 @@
-import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { SupabaseProvider } from './lib/supabase'
 import { AuthProvider } from './contexts/AuthContext'
@@ -7,9 +6,9 @@ import Layout from './components/layout/Layout'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
 import AuthPage from './pages/AuthPage'
-import ProfilePage from './pages/ProfilePage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (

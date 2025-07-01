@@ -1,8 +1,12 @@
+/// <reference path="./env.d.ts" />
+
 export interface User {
   id: string
   email: string
   created_at: string
-  updated_at: string
+  last_sign_in_at?: string
+  subscription_tier?: 'free' | 'pro' | 'enterprise'
+  updated_at?: string
 }
 
 export interface AuthContextType {
