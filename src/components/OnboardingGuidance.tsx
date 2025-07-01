@@ -320,7 +320,7 @@ interface GuidancePopupProps {
   onDismiss: () => void;
 }
 
-const GuidancePopup: React.FC<GuidancePopupProps> = ({ id, content, onDismiss }) => {
+const GuidancePopup: React.FC<GuidancePopupProps> = ({ content, onDismiss }) => {
   const [showRemindLater, setShowRemindLater] = useState(false);
 
   return createPortal(
@@ -594,6 +594,16 @@ const getTourConfiguration = (tourId: string): GuidanceTour | null => {
   };
   
   return tours[tourId] || null;
+};
+
+const OnboardingGuidance = {
+  Provider: GuidanceProvider,
+  useGuidance,
+  InteractiveTour,
+  GuidancePopup,
+  HotspotHighlight,
+  ContextualTooltip,
+  WelcomeBanner
 };
 
 export default OnboardingGuidance; 

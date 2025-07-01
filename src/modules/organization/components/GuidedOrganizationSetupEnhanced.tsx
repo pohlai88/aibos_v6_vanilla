@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGuidance, TourProgressBar, TourFeedback, AnimatedPointer } from '../../../components/OnboardingGuidanceEnhanced';
+import { getTimezoneOptions } from '../../../utils/timezoneUtils';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -86,6 +87,35 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
   const phoneRef = useRef<HTMLInputElement>(null);
   const websiteRef = useRef<HTMLInputElement>(null);
 
+  // Timezone options
+  const [timezoneOptions, setTimezoneOptions] = useState<Array<{value: string, label: string}>>([]);
+
+  // Load timezone options
+  useEffect(() => {
+    const loadTimezones = async () => {
+      try {
+        const options = await getTimezoneOptions();
+        setTimezoneOptions(options);
+      } catch (error) {
+        console.warn('Failed to load timezones, using fallback:', error);
+        // Fallback to common timezones
+        setTimezoneOptions([
+          { value: 'UTC', label: 'UTC' },
+          { value: 'America/New_York', label: 'Eastern Time' },
+          { value: 'America/Chicago', label: 'Central Time' },
+          { value: 'America/Denver', label: 'Mountain Time' },
+          { value: 'America/Los_Angeles', label: 'Pacific Time' },
+          { value: 'Europe/London', label: 'London' },
+          { value: 'Europe/Paris', label: 'Paris' },
+          { value: 'Asia/Tokyo', label: 'Tokyo' },
+          { value: 'Asia/Shanghai', label: 'Shanghai' },
+          { value: 'Australia/Sydney', label: 'Sydney' }
+        ]);
+      }
+    };
+    loadTimezones();
+  }, []);
+
   // Auto-start tour on component mount
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -133,12 +163,6 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
   };
 
   // Step navigation
-  const goToStep = (stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < steps.length) {
-      setCurrentStep(stepIndex);
-    }
-  };
-
   const nextStep = () => {
     const currentStepData = steps[currentStep];
     
@@ -189,8 +213,6 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
         throw new Error(errorData.message || 'Failed to create organization');
       }
 
-      const result = await response.json();
-      
       // Mark tour as complete
       markTourComplete('organization-setup');
       
@@ -199,9 +221,8 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
       setTimeout(() => setShowFeedback(true), 2000);
 
     } catch (error) {
-      setErrors({ 
-        submit: error instanceof Error ? error.message : 'An unexpected error occurred' 
-      });
+      console.error('Error creating organization:', error);
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to create organization' });
     } finally {
       setIsSubmitting(false);
     }
@@ -212,10 +233,6 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
     submitFeedback('organization-setup', rating, comment);
     setShowFeedback(false);
   };
-
-  // Progress calculation
-  const completedSteps = steps.filter(step => step.completed).length;
-  const progress = (completedSteps / steps.length) * 100;
 
   // Render current step
   const renderStep = () => {
@@ -395,8 +412,10 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
                   onChange={(e) => setOrganization(prev => ({ ...prev, timezone: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {Intl.supportedValuesOf('timeZone').map(tz => (
-                    <option key={tz} value={tz}>{tz}</option>
+                  {timezoneOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -572,7 +591,6 @@ export const GuidedOrganizationSetupEnhanced: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-xl max-w-md mx-4">
             <TourFeedback
-              tourId="organization-setup"
               onSubmit={handleFeedbackSubmit}
               onSkip={() => setShowFeedback(false)}
             />

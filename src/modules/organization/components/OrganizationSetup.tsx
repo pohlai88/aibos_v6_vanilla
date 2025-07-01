@@ -55,7 +55,7 @@ const OrganizationSetup: React.FC<OrganizationSetupProps> = ({ onComplete, onCan
       case 'basic':
         return formData.name.trim().length > 0;
       case 'details':
-        return formData.name.trim().length > 0 && formData.slug.trim().length > 0;
+        return formData.name.trim().length > 0 && (formData.slug?.trim().length ?? 0) > 0;
       case 'settings':
         return true; // Settings are optional
       default:

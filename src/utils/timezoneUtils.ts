@@ -28,8 +28,8 @@ export const getTimezoneOptions = (): Array<{ value: string; label: string; grou
 
   try {
     // Modern browsers support Intl.supportedValuesOf
-    if (typeof Intl !== 'undefined' && Intl.supportedValuesOf) {
-      const timezones = Intl.supportedValuesOf('timeZone');
+    if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
+      const timezones = (Intl as any).supportedValuesOf('timeZone');
       const options = timezones.map((tz: string) => ({
         value: tz,
         label: formatTimezoneDisplay(tz),

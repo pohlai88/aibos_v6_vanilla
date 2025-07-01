@@ -2,6 +2,70 @@
 // Metadata governance, audit trail, and multi-org features
 
 // ============================================================================
+// BASIC TYPE DEFINITIONS
+// ============================================================================
+
+export type FieldType = 'text' | 'number' | 'email' | 'phone' | 'date' | 'datetime' | 'select' | 'multiselect' | 'textarea' | 'checkbox' | 'radio' | 'file' | 'url' | 'password' | 'boolean';
+
+export type EntityType = 'organization' | 'user' | 'employee' | 'department' | 'role' | 'permission' | 'audit' | 'session';
+
+export interface ValidationRules {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  min_value?: number; // Legacy support
+  max_value?: number; // Legacy support
+  email?: boolean;
+  url?: boolean;
+  custom?: string;
+  custom_message?: string; // Legacy support
+}
+
+export interface FieldMetadata {
+  id: string;
+  organization_id: string;
+  entity_type: EntityType;
+  field_name: string;
+  field_label: string;
+  field_type: FieldType;
+  field_options?: any[];
+  is_required: boolean;
+  is_system: boolean;
+  is_hidden: boolean;
+  display_order: number;
+  validation_rules?: ValidationRules;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  industry?: string;
+  size?: string;
+  timezone?: string;
+  status?: 'active' | 'inactive' | 'suspended';
+  domain?: string;
+  organization_name?: string;
+  organization_code?: string;
+  legal_name?: string;
+  tax_id?: string;
+  registration_number?: string;
+  settings?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+// ============================================================================
 // METADATA GOVERNANCE TYPES
 // ============================================================================
 

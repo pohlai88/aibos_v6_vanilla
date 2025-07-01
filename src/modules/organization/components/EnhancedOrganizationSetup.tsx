@@ -14,31 +14,26 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
   onSkip
 }) => {
   const [currentStep, setCurrentStep] = useState<'basic' | 'advanced' | 'complete'>('basic');
-  const [organizationData, setOrganizationData] = useState<Partial<Organization>>({});
+  const [organization, setOrganization] = useState<Partial<Organization>>({
+    organization_name: 'company',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Smart defaults based on user context
   const generateSmartDefaults = (): Partial<Organization> => {
     const defaults: Partial<Organization> = {
       status: 'active',
-      organization_type: 'company',
+      organization_name: 'company',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      currency: 'USD',
-      fiscal_year_start: '01-01',
-      employee_count: 1,
-      industry: 'technology',
-      founded_year: new Date().getFullYear(),
-      is_public: false,
-      has_subsidiaries: false,
-      compliance_level: 'basic'
+      industry: 'technology'
     };
 
     return defaults;
   };
 
   useEffect(() => {
-    setOrganizationData(generateSmartDefaults());
+    setOrganization(generateSmartDefaults());
   }, []);
 
   const handleBasicSubmit = async (data: Record<string, any>) => {
@@ -55,7 +50,7 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
         registration_number: data.registration_number || 'PENDING'
       };
 
-      setOrganizationData(enhancedData);
+      setOrganization(enhancedData);
       
       // Check if we should show advanced fields
       if (shouldShowAdvancedFields(enhancedData)) {
@@ -74,7 +69,7 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
     setIsSubmitting(true);
     
     try {
-      const completeData = { ...organizationData, ...data };
+      const completeData = { ...organization, ...data };
       await createOrganization(completeData);
     } catch (error) {
       console.error('Error in advanced setup:', error);
@@ -226,7 +221,7 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
       <MetadataDrivenForm
         entityType="organization"
         organizationId="temp" // Will be replaced after creation
-        initialData={organizationData}
+        initialData={organization}
         onSubmit={handleBasicSubmit}
         isSubmitting={isSubmitting}
       />
@@ -275,9 +270,9 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
       <MetadataDrivenForm
         entityType="organization"
         organizationId="temp"
-        initialData={organizationData}
+        initialData={organization}
         onSubmit={handleAdvancedSubmit}
-        onCancel={() => createOrganization(organizationData)}
+        onCancel={() => createOrganization(organization)}
         isSubmitting={isSubmitting}
       />
     </div>
@@ -296,7 +291,7 @@ const EnhancedOrganizationSetup: React.FC<EnhancedOrganizationSetupProps> = ({
           Organization Setup Complete!
         </h2>
         <p className="text-gray-600">
-          Your organization "{organizationData.organization_name}" has been successfully created.
+          Your organization "{organization.organization_name}" has been successfully created.
         </p>
       </div>
 

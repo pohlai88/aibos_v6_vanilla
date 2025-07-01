@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 // ============================================================================
@@ -228,14 +228,12 @@ export const TourProgressBar: React.FC<TourProgressBarProps> = ({
 // TOUR FEEDBACK COMPONENT
 // ============================================================================
 
-interface TourFeedbackProps {
-  tourId: string;
+export interface TourFeedbackProps {
   onSubmit: (rating: number, comment?: string) => void;
   onSkip: () => void;
 }
 
 export const TourFeedback: React.FC<TourFeedbackProps> = ({ 
-  tourId, 
   onSubmit, 
   onSkip 
 }) => {
@@ -821,5 +819,17 @@ const getTourConfiguration = (tourId: string): GuidanceTour | null => {
 // Placeholder components for existing functionality
 const GuidancePopup: React.FC<{id: string, content: string, onDismiss: () => void}> = () => null;
 const HotspotHighlight: React.FC<{elementId: string, message: string, onHide: () => void}> = () => null;
+
+const OnboardingGuidanceEnhanced = {
+  Provider: GuidanceProvider,
+  useGuidance,
+  EnhancedInteractiveTour,
+  GuidancePopup,
+  HotspotHighlight,
+  AnimatedPointer,
+  TourProgressBar,
+  TourFeedback,
+  ErrorToast
+};
 
 export default OnboardingGuidanceEnhanced; 

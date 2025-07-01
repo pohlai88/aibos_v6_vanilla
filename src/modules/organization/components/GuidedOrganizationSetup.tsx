@@ -28,7 +28,6 @@ const GuidedOrganizationSetup: React.FC<GuidedOrganizationSetupProps> = ({
     showPopup, 
     showHotspot, 
     hideHotspot,
-    isTourCompleted,
     isPopupDismissed 
   } = useGuidance();
 
@@ -36,16 +35,9 @@ const GuidedOrganizationSetup: React.FC<GuidedOrganizationSetupProps> = ({
   const generateSmartDefaults = (): Partial<Organization> => {
     const defaults: Partial<Organization> = {
       status: 'active',
-      organization_type: 'company',
+      organization_name: 'company',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      currency: 'USD',
-      fiscal_year_start: '01-01',
-      employee_count: 1,
-      industry: 'technology',
-      founded_year: new Date().getFullYear(),
-      is_public: false,
-      has_subsidiaries: false,
-      compliance_level: 'basic'
+      industry: 'technology'
     };
 
     // Pre-fill based on email domain

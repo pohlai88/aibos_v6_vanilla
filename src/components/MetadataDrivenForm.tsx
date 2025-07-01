@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  MetadataDrivenForm, 
+import type { 
+  MetadataDrivenForm as MetadataDrivenFormType, 
   MetadataDrivenFormField, 
-  FieldMetadata, 
-  ValidationRules 
+  FieldMetadata
 } from '../types/enhanced';
 
 interface MetadataDrivenFormProps {
@@ -23,7 +22,7 @@ const MetadataDrivenForm: React.FC<MetadataDrivenFormProps> = ({
   onCancel,
   isSubmitting = false
 }) => {
-  const [form, setForm] = useState<MetadataDrivenForm>({
+  const [form, setForm] = useState<MetadataDrivenFormType>({
     entity_type: entityType,
     fields: [],
     is_loading: true,
@@ -95,19 +94,19 @@ const MetadataDrivenForm: React.FC<MetadataDrivenFormProps> = ({
     }
 
     // Length validation
-    if (value && rules.min_length && value.toString().length < rules.min_length) {
-      return `${field.field_label} must be at least ${rules.min_length} characters`;
+    if (value && rules.minLength && value.toString().length < rules.minLength) {
+      return `${field.field_label} must be at least ${rules.minLength} characters`;
     }
 
-    if (value && rules.max_length && value.toString().length > rules.max_length) {
-      return `${field.field_label} must be no more than ${rules.max_length} characters`;
+    if (value && rules.maxLength && value.toString().length > rules.maxLength) {
+      return `${field.field_label} must be no more than ${rules.maxLength} characters`;
     }
 
     // Pattern validation
     if (value && rules.pattern) {
       const regex = new RegExp(rules.pattern);
       if (!regex.test(value.toString())) {
-        return rules.custom_message || `${field.field_label} format is invalid`;
+        return rules.custom || `${field.field_label} format is invalid`;
       }
     }
 
@@ -117,11 +116,11 @@ const MetadataDrivenForm: React.FC<MetadataDrivenFormProps> = ({
       if (isNaN(numValue)) {
         return `${field.field_label} must be a valid number`;
       }
-      if (rules.min_value !== undefined && numValue < rules.min_value) {
-        return `${field.field_label} must be at least ${rules.min_value}`;
+      if (rules.min !== undefined && numValue < rules.min) {
+        return `${field.field_label} must be at least ${rules.min}`;
       }
-      if (rules.max_value !== undefined && numValue > rules.max_value) {
-        return `${field.field_label} must be no more than ${rules.max_value}`;
+      if (rules.max !== undefined && numValue > rules.max) {
+        return `${field.field_label} must be no more than ${rules.max}`;
       }
     }
 
