@@ -12,3 +12,19 @@ npm run preview      # Preview production build
 npx supabase init    # Initialize Supabase
 npx supabase start   # Start local development
 npx supabase db push # Push schema changes
+
+# Clone and setup
+git clone https://github.com/pohlai88/aibos_v6.html.git
+cd aibos_v6.html
+
+# Install dependencies (after I generate the foundation)
+npm install
+
+# Development
+npm run dev
+
+# Build for production
+npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
