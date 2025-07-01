@@ -1,33 +1,73 @@
-# 🚀 SaaS Development Master Plan - pohlai88
+# 🧭 AIBOS Foundation Document
 
-**Created**: 2025-07-01  
-**User**: pohlai88  
-**Project**: Company SaaS Platform  
+## 🌟 Vision
 
-## 📋 Executive Summary
+- **One platform for all business operations.**
+- **Minimal, intuitive, and secure.**
+- **Customizable, modular, and compliant.**
+- **Internal-first, ready for external SaaS.**
 
-Building a modern SaaS platform using cutting-edge web technologies with AI-powered development workflow. Focus on rapid development, type safety, and scalable architecture.
+## 🏗️ Architecture & Stack (with Rigid Rationale)
+
+- **Universal Stack**: HTML + Vanilla JS + TypeScript + Tailwind + Vite + Supabase.
+  - **Rationale**: Universally understood, minimizes onboarding and tech debt, maximizes maintainability and clarity.
+- **No custom backend frameworks** unless a need is justified for all entities and approved by steering committee.
+  - **Rationale**: Prevents fragmentation, ensures security and auditability.
+
+## 🔑 Core/Module Boundaries
+
+- **Core (`/src/core/`)**: Handles authentication, user/entity/region context, permissions, audit logs, navigation.
+  - *Cannot be modified except by core maintainers.*
+- **Modules (`/src/modules/`)**: Each domain (CRM, Accounting, HR, etc.) is an independent, pluggable folder.
+  - *Modules must never alter or bypass core logic.*
+  - *Modules are enabled/disabled per entity via configuration.*
+
+## 🛡️ Security, Compliance & Governance
+
+### Data Privacy & Compliance
+
+- **Data locality**: Data is stored and processed in accordance with regional laws (GDPR, CCPA, PIPL, etc.).
+- **Entity/region data boundaries**: All access is scoped, with RLS enforced at the DB level.
+- **Auditability**: All significant actions are logged, traceable, and monitored.
+
+### Disaster Recovery & Backups
+
+- **Automated backups**: Daily (minimum), with monthly retention for 1 year.
+- **Restore procedures**: Documented and tested quarterly.
+- **Incident response**: Defined in [Checklist/Task Master](#checklist--task-master).
+
+### Access Control
+
+- **Granular permissions**: User, entity, region, and module-level roles.
+- **Onboarding/offboarding**: Process for users, modules, and entities is documented and enforced.
+
+### Change Management
+
+- **Versioning**: All modules and core have version numbers.
+- **Changelog**: Maintained for all major changes.
+- **Review**: All code is reviewed by at least one core maintainer and validated by AI tools.
+
+### Customization Boundaries
+
+- **Global vs. local config**: IFRS/GAAP logic, security, and audit are global. Workflows, UI, and language can be localized.
+- **No module may store sensitive data or manage permissions directly.**
+
+### Testing & Quality
+
+- **Automated tests**: Required for all modules.
+- **CI/CD**: All PRs must pass automated checks.
+- **Manual review**: Required for all changes to `/core/`.
+
+### Documentation
+
+- **Each module must have its own README.**
+- **Business logic and workflows must be documented for end-users and engineers.**
 
 ---
 
-## 🛠️ Tech Stack (Confirmed)
+## 🛠️ Tech Stack Details
 
-### Frontend Core
-- **HTML** - Semantic markup foundation
-- **Vite** - Build tool & dev server (hot reload)
-- **TypeScript** - Type safety & developer experience
-- **Tailwind CSS** - Utility-first styling
-- **Vanilla JavaScript** - Core interactivity
-- **PostCSS** - CSS processing & optimization
-
-### Backend & Database
-- **Supabase** - Backend-as-a-Service
-  - PostgreSQL database
-  - Real-time subscriptions
-  - Authentication & authorization
-  - Row Level Security (RLS)
-  - Storage & CDN
-  - Edge functions
+*For the complete tech stack overview, see [README.md](./README.md).*
 
 ### AI Development Workflow
 - **Cursor AI** - Primary coding AI agent
@@ -45,31 +85,7 @@ Building a modern SaaS platform using cutting-edge web technologies with AI-powe
 
 ## 🏗️ Project Architecture
 
-### Folder Structure
-```
-my-saas-platform/
-├── index.html                 # Vite entry point
-├── src/
-│   ├── main.ts               # TypeScript entry
-│   ├── app.ts                # Main application logic
-│   ├── components/           # Modular components
-│   │   ├── ui/              # Base UI components
-│   │   ├── forms/           # Form components
-│   │   ├── layout/          # Layout components
-│   │   └── saas/            # SaaS-specific components
-│   ├── pages/               # Page components
-│   ├── services/            # API & Supabase integration
-│   ├── utils/               # Helper functions
-│   ├── types/               # TypeScript definitions
-│   ├── hooks/               # Custom functionality
-│   └── styles/              # CSS & Tailwind
-├── supabase/                # Database schema & functions
-├── package.json
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
-└── .cursorrules             # Cursor AI configuration
-```
+*For the complete project structure, see [README.md](./README.md).*
 
 ### Key Dependencies
 ```json
@@ -294,6 +310,30 @@ When starting a new session, reference this document and:
 
 ---
 
-**💡 Remember**: This stack gives you the power of modern web development while outputting clean HTML. You get developer productivity AND user experience - the best of both worlds!
+## 🚦 Checklist / Task Master
 
-**🔄 Last Updated**: 2025-07-01 by pohlai88
+- [ ] Data privacy policy in place and reviewed for all regions
+- [ ] RLS and permission boundaries tested for all entities
+- [ ] Audit log implemented and monitored
+- [ ] Backup and restore tested quarterly
+- [ ] Onboarding/offboarding documented and in use
+- [ ] Access control reviewed for all modules
+- [ ] Automated tests and CI/CD configured for all modules
+- [ ] Documentation present for every module and business logic
+- [ ] Incident response plan documented and tested
+- [ ] Localization/internationalization scoped and planned
+- [ ] Performance and scalability monitoring in place
+- [ ] API and integration policies defined
+
+---
+
+## 📝 Decision Log
+
+- **2025-07-01:** Adopted universal stack policy and core/module separation.
+- **2025-07-01:** Foundation document ratified, checklist created.
+
+---
+
+**All contributors, engineers, and stakeholders must read and comply with this document. It is the contract for our platform's long-term success, clarity, and security.**
+
+_Last updated: 2025-07-01_

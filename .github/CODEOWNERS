@@ -1,0 +1,50 @@
+# AIBOS V6 - Code Ownership
+
+# Core platform files - requires senior review
+/src/core/ @aibos-core-team
+AIBOS_Foundation.md @aibos-core-team
+docs/architecture.md @aibos-core-team
+docs/security.md @aibos-core-team
+docs/compliance.md @aibos-core-team
+
+# Documentation - requires documentation team review
+/docs/ @aibos-docs-team
+README.md @aibos-docs-team
+CONTRIBUTING.md @aibos-docs-team
+SECURITY.md @aibos-docs-team
+
+# Configuration and build files
+package.json @aibos-devops-team
+vite.config.js @aibos-devops-team
+tailwind.config.js @aibos-devops-team
+tsconfig.json @aibos-devops-team
+.github/ @aibos-devops-team
+
+# Scripts and automation
+scripts/ @aibos-devops-team
+
+# Environment and secrets
+.env* @aibos-security-team
+*.env @aibos-security-team
+
+# Database and migrations
+supabase/ @aibos-database-team
+
+# Module development - module-specific ownership
+/src/modules/crm/ @aibos-crm-team
+/src/modules/finance/ @aibos-finance-team
+/src/modules/hrm/ @aibos-hrm-team
+/src/modules/vendor/ @aibos-vendor-team
+
+# Shared components and utilities
+/src/components/ @aibos-ui-team
+/src/lib/ @aibos-core-team
+/src/types/ @aibos-core-team
+
+# Tests
+/tests/ @aibos-qa-team
+*.test.* @aibos-qa-team
+*.spec.* @aibos-qa-team
+
+# Default owners for everything else
+* @aibos-core-team 

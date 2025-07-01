@@ -1,26 +1,29 @@
-# 🚀 AIBOS V6 - AI-Powered SaaS Platform
+# 🦾 AIBOS – The AI Business Operation System
 
-A modern, full-stack SaaS application built with React, TypeScript, Tailwind CSS, and Supabase, optimized for GitHub Pages deployment.
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/your-org/aibos_v6_vanilla/ci.yml?branch=main&style=flat-square&logo=github-actions)](./.github/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-100%25%20structured-brightgreen?style=flat-square&logo=read-the-docs)](./docs/)
+[![Validation](https://img.shields.io/badge/validation-automated-blue?style=flat-square&logo=github-actions)](./scripts/pre-push-validation.cjs)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
+[![Security](https://img.shields.io/badge/security-policy-blue?style=flat-square)](./SECURITY.md)
+[![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-Contributor%20Covenant-ff69b4?style=flat-square)](./CODE_OF_CONDUCT.md)
+[![Support](https://img.shields.io/badge/support-guide-available-orange?style=flat-square)](./SUPPORT.md)
 
-## ✨ Features
+## 🚀 Mission
 
-- 🎨 **Modern UI/UX** - Beautiful, responsive design with Tailwind CSS
-- 🔐 **Authentication** - Secure user authentication with Supabase
-- 📊 **Dashboard** - Comprehensive analytics and management interface
-- 🚀 **Fast Performance** - Optimized build with Vite
-- 📱 **Mobile-First** - Fully responsive across all devices
-- 🌙 **Dark Mode** - Built-in dark/light theme support
-- 🔧 **TypeScript** - Full type safety throughout the application
-- ⚡ **Real-time** - Live updates with Supabase subscriptions
+AIBOS centralizes all core business operations—across every company, region, and industry in our group—into one intuitive, minimal, and secure platform.
 
-## 🛠️ Tech Stack
+- **Clarity & Minimalism:** Inspired by Apple's philosophy—users always know where they are, what to do, and what's next.
+- **Custom-fit & Scalable:** Built for our unique needs; extensible for future external SaaS.
+- **Universal Collaboration:** Every engineer, in every department and company, shares the same standards and vision.
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **Styling:** Tailwind CSS
-- **Backend:** Supabase (Database + Auth + Real-time)
-- **Deployment:** GitHub Pages + GitHub Actions
-- **Icons:** Lucide React
-- **State Management:** React Context API
+## 🧑‍💻 Core Tech Stack
+
+- **Frontend:** HTML + Vanilla JS + TypeScript + Vite
+- **Styling:** Tailwind CSS + PostCSS
+- **Backend/Data:** Supabase (Postgres, Auth, Realtime, Storage)
+- **AI Development:** Copilot, Cursor AI
+
+> No custom backend frameworks (Node.js, Nest.js, etc.) unless universally required and approved.
 
 ## 🚀 Quick Start
 
@@ -61,20 +64,23 @@ Visit `http://localhost:3000` to see your application.
 npm run build
 ```
 
-## 📁 Project Structure
+## 🗂️ Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── auth/           # Authentication components
-│   ├── layout/         # Layout components
-│   └── ui/             # Base UI components
-├── contexts/           # React contexts
-├── lib/               # Utilities and configurations
-├── pages/             # Route components
-├── styles/            # Global styles
-├── types/             # TypeScript definitions
-└── main.tsx           # Application entry point
+aibos/
+├── src/
+│   ├── core/        # Platform core (auth, user/entity mgmt, permissions, navigation)
+│   ├── modules/     # Business modules (CRM, Vendor, Finance, HRM, etc.)
+│   ├── components/  # Shared UI components
+│   ├── types/       # Data models, roles, permissions
+│   ├── hooks/       # Custom hooks
+│   ├── utils/       # Helpers
+│   └── styles/      # Global styles
+├── supabase/        # DB schema, policies
+├── .cursorrules     # AI coding standards
+├── README.md
+├── AIBOS_Foundation.md
+└── CONTRIBUTING.md
 ```
 
 ## 🔧 Available Scripts
@@ -145,59 +151,100 @@ theme: {
 
 All components are in `src/components/` and fully customizable.
 
-## 📊 Features Overview
+## 📊 Platform Overview
 
-### 🏠 Landing Page
-- Hero section with call-to-action
-- Features showcase
-- Responsive design
+AIBOS provides a unified platform for all business operations with:
 
-### 🔐 Authentication
-- Email/password signup and login
-- Protected routes
-- User session management
+- **Core Platform**: Authentication, user management, permissions, audit logs
+- **Business Modules**: CRM, Finance, HR, Vendor Management, and more
+- **Security & Compliance**: RLS, data privacy, audit trails
+- **Scalability**: Multi-entity, multi-region support
 
-### 📊 Dashboard
-- Real-time analytics
-- User statistics
-- Activity feeds
-- Responsive charts
+## 📚 Documentation Hub
 
-### 👤 Profile Management
-- User profile editing
-- Security settings
-- Notification preferences
+**All contributors, engineers, and stakeholders must reference these documents for guidance and compliance.**
 
-## 🚦 Performance
+### 📑 Documentation Map
 
-- **Lighthouse Score**: 95+ across all metrics
-- **Bundle Size**: Optimized with code splitting
-- **Loading**: Lazy loading for better performance
-- **Caching**: Efficient caching strategies
+- [docs/architecture.md](./docs/architecture.md) — Technical blueprint, system overview, data flows
+- [docs/core_vs_module.md](./docs/core_vs_module.md) — Separation of concerns: core vs modules
+- [docs/security.md](./docs/security.md) — Security strategy, secrets, access control, incident response
+- [docs/compliance.md](./docs/compliance.md) — Data privacy, audit, regional/legal requirements
+- [docs/testing.md](./docs/testing.md) — Automated/manual testing, coverage, process
+- [docs/ci_cd.md](./docs/ci_cd.md) — Build, deployment, and release standards
+- [docs/api_contracts.md](./docs/api_contracts.md) — API and integration guidelines
+- [docs/onboarding.md](./docs/onboarding.md) — Engineer, module, and entity onboarding
+- [docs/module_template.md](./docs/module_template.md) — How to structure and document a new business module
+- [docs/incident_response.md](./docs/incident_response.md) — Process for handling incidents/outages/breaches
+- [docs/faq.md](./docs/faq.md) — Common technical and operational questions
+- [docs/business_rules.md](./docs/business_rules.md) — Domain rules, cross-entity logic, compliance mapping
+- [docs/user_manual.md](./docs/user_manual.md) — End-user guidance and onboarding
+- [docs/decision_log.md](./docs/decision_log.md) — Rationale for major architectural and policy decisions
+- [docs/glossary.md](./docs/glossary.md) — Definitions of key terms
+- [docs/style_guide.md](./docs/style_guide.md) — Visual and code style conventions
+- [docs/localization.md](./docs/localization.md) — Policies for i18n/a11y and multi-region support
+- [docs/deployment_zones.md](./docs/deployment_zones.md) — Data residency and hosting architecture
+- [docs/database.md](./docs/database.md) — Database schema, migrations, and data management
+- [docs/performance.md](./docs/performance.md) — Performance monitoring and optimization
+- [docs/troubleshooting.md](./docs/troubleshooting.md) — Common issues and support procedures
+- [docs/data_migration.md](./docs/data_migration.md) — Data import/export and migration procedures
+- [docs/documentation_maintenance.md](./docs/documentation_maintenance.md) — Documentation sync and maintenance procedures
+- [docs/github_copilot_goalkeeper.md](./docs/github_copilot_goalkeeper.md) — GitHub Copilot secondary goalkeeper protocol
+- [docs/TEAMS.md](./docs/TEAMS.md) — Team organization and contributor recognition
 
-## 🔒 Security
+### 🚀 Documentation Quick Start
 
-- Environment variables for sensitive data
-- Supabase Row Level Security (RLS)
-- HTTPS enforcement
-- XSS protection
+1. **New to AIBOS?** Start with [AIBOS_Foundation.md](./AIBOS_Foundation.md) and [docs/onboarding.md](./docs/onboarding.md)
+2. **Developer?** Review [docs/architecture.md](./docs/architecture.md) and [docs/style_guide.md](./docs/style_guide.md)
+3. **Building a module?** Follow [docs/module_template.md](./docs/module_template.md)
+4. **Security questions?** Check [docs/security.md](./docs/security.md) and [docs/compliance.md](./docs/compliance.md)
 
-## 🤝 Contributing
+## 🤝 How to Contribute
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Quick Start for Contributors
+
+1. **📚 Read the Essentials:**
+   - [AIBOS_Foundation.md](./AIBOS_Foundation.md) - Core principles and architecture
+   - [CONTRIBUTING.md](./CONTRIBUTING.md) - Detailed contribution process
+   - [docs/onboarding.md](./docs/onboarding.md) - Developer onboarding guide
+
+2. **🔧 Setup Your Environment:**
+   ```bash
+   git clone https://github.com/your-org/aibos_v6_vanilla.git
+   cd aibos_v6_vanilla
+   npm install
+   npm run dev
+   ```
+
+3. **📋 Choose Your Contribution:**
+   - 🐛 **Bug Fix**: Use [Bug Report Template](./.github/ISSUE_TEMPLATE/bug_report.md)
+   - ✨ **Feature**: Use [Feature Request Template](./.github/ISSUE_TEMPLATE/feature_request.md)
+   - 📚 **Documentation**: Follow [docs/documentation_maintenance.md](./docs/documentation_maintenance.md)
+   - 🔧 **Module Development**: Use [docs/module_template.md](./docs/module_template.md)
+
+4. **✅ Quality Assurance:**
+   - Run `npm run pre-push-check` before submitting
+   - Follow [docs/testing.md](./docs/testing.md) for test requirements
+   - Ensure [docs/security.md](./docs/security.md) compliance
+
+### 🆘 Need Help?
+
+- **General Questions**: [GitHub Discussions](https://github.com/your-org/aibos_v6_vanilla/discussions)
+- **Support**: [SUPPORT.md](./SUPPORT.md)
+- **Security Issues**: [SECURITY.md](./SECURITY.md)
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+
+---
+
+**All rules, governance, and detailed policies are in [AIBOS_Foundation.md](./AIBOS_Foundation.md).**
+
+---
+
+Built with ❤️ for the future of our organization.
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Supabase](https://supabase.com/)
 - [Lucide React](https://lucide.dev/)

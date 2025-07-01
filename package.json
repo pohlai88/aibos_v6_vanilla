@@ -8,7 +8,12 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist",
+    "doc-check": "node scripts/doc-sync.cjs",
+    "doc-validate": "node scripts/doc-sync.cjs validate",
+    "doc-report": "node scripts/doc-sync.cjs report",
+    "setup-hooks": "chmod +x scripts/pre-commit-hook.sh && cp scripts/pre-commit-hook.sh .git/hooks/pre-commit",
+    "pre-push-check": "node scripts/pre-push-validation.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.4",
