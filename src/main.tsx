@@ -6,7 +6,7 @@ import './styles/globals.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename="/aibos_v6.html">
+    <BrowserRouter basename="/aibos_v6_vanilla">
       <App />
     </BrowserRouter>
   </React.StrictMode>,
