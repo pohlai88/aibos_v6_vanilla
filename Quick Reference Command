@@ -1,0 +1,14 @@
+# Quick Setup Commands
+npm create vite@latest my-saas --template vanilla-ts
+npm install @supabase/supabase-js tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Supabase
+npx supabase init    # Initialize Supabase
+npx supabase start   # Start local development
+npx supabase db push # Push schema changes
