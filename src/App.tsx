@@ -1,68 +1,70 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { SupabaseProvider } from './lib/supabase'
-import { AuthProvider } from './contexts/AuthContext'
-import { Toaster } from './components/ui/Toaster'
-import Layout from './components/layout/Layout'
-import HomePage from './pages/HomePage'
-import DashboardPage from './pages/DashboardPage'
-import AuthPage from './pages/AuthPage'
-import NotFoundPage from './pages/NotFoundPage'
-import ProtectedRoute from './components/auth/ProtectedRoute'
-import ProfilePage from './pages/ProfilePage'
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { SupabaseProvider } from "./lib/supabase";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import HomePage from "./pages/HomePage";
+import DashboardPage from "./modules/Dashboard/DashboardPage";
+import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
-console.log('App.tsx: Component loaded')
+import AppShell from "./components/layout/AppShell";
 
-// Simple fallback component for debugging
-const DebugFallback: React.FC = () => {
-  console.log('DebugFallback: Rendering fallback')
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">AIBOS V6</h1>
-        <p className="text-gray-600">App is loading...</p>
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
-    </div>
-  )
-}
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
-  console.log('App: Rendering main app component')
-  
   return (
-    <React.Suspense fallback={<DebugFallback />}>
+    <ThemeProvider>
       <SupabaseProvider>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<HomePage />} />
-                <Route path="auth" element={<AuthPage />} />
-                <Route
-                  path="dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-            <Toaster />
-          </div>
+          {/* Only wrap protected app pages with AppShell. Do NOT show AppShell (header/background) on HomePage or LoginPage. */}
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <DashboardPage />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <ProfilePage />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </AuthProvider>
       </SupabaseProvider>
-    </React.Suspense>
-  )
+    </ThemeProvider>
+  );
 }
 
-export default App 
+export default App;

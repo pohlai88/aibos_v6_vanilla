@@ -274,3 +274,14 @@ For support, email support@aibos.com or join our community discussions.
 ---
 
 **Built with ❤️ for modern SaaS applications**
+
+## Shared UI Components
+
+### Modal
+
+A reusable, accessible Modal component is available at `src/components/ui/Modal.tsx`.
+
+- Use this for all modal dialogs, confirmations, and overlays.
+- Ensures consistent UX, accessibility, and styling across the app.
+- Supports title, children, onClose, and custom action buttons.
+- See the file for usage examples.

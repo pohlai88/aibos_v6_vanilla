@@ -1,4 +1,5 @@
-/// <reference path="./env.d.ts" />
+import './env.d.ts';
+import React from 'react';
 
 export interface User {
   id: string
@@ -11,12 +12,15 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null
-  session: any
+  session: unknown
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
+
+// Re-export profile types
+export type { UserProfile, ProfileUpdateData } from '../lib/profileService';
 
 export interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
@@ -38,6 +42,6 @@ export interface DashboardStats {
   title: string
   value: string
   change: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   color: string
 } 

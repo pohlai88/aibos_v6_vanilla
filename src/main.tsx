@@ -1,17 +1,21 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.tsx'
-import './styles/globals.css'
+/* global console, document */
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.tsx";
+import "./styles/globals.css";
+import { QuickAddActionsProvider } from "./contexts/QuickAddContext";
 
-console.log('main.tsx: Starting app initialization')
+// console.log('main.tsx: Starting app initialization')
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <QuickAddActionsProvider>
+        <App />
+      </QuickAddActionsProvider>
     </BrowserRouter>
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
 
-console.log('main.tsx: App rendered to DOM') 
+// console.log('main.tsx: App rendered to DOM')

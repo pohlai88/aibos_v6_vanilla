@@ -1,50 +1,148 @@
-import React from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import Card from '@/components/ui/Card'
-import Loading from '@/components/ui/Loading'
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import TabNavigation, { TabItem } from "../components/ui/TabNavigation";
+import OverviewTab from "../components/profile/OverviewTab";
+import SecurityTab from "../components/profile/SecurityTab";
+import SupportTab from "../components/profile/SupportTab";
+import DivisionDepartmentTab from "../components/profile/DivisionDepartmentTab";
+import SettingsTab from "../components/profile/SettingsTab";
+import ActivityLogTab from "../components/profile/ActivityLogTab";
+import IntegrationsTab from "../components/profile/IntegrationsTab";
+import ComplianceTab from "../components/profile/ComplianceTab";
 
 const ProfilePage: React.FC = () => {
-  const { user, loading } = useAuth()
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <Loading />
-      </div>
-    )
-  }
+  // Define tabs based on priority matrix
+  const tabs: TabItem[] = [
+    {
+      id: "overview",
+      label: "Overview",
+      icon: "👤",
+    },
+    {
+      id: "security",
+      label: "Security",
+      icon: "🔒",
+    },
+    {
+      id: "support",
+      label: "Support",
+      icon: "💬",
+    },
+    {
+      id: "division",
+      label: "Division/Department",
+      icon: "🏢",
+      disabled: true, // Phase 2
+      badge: "Phase 2",
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: "⚙️",
+      disabled: true, // Phase 2
+      badge: "Phase 2",
+    },
+    {
+      id: "activity",
+      label: "Activity Log",
+      icon: "📊",
+      disabled: true, // Phase 2
+      badge: "Phase 2",
+    },
+    {
+      id: "integrations",
+      label: "Integrations",
+      icon: "🔗",
+      disabled: true, // Phase 3
+      badge: "Phase 3",
+    },
+    {
+      id: "compliance",
+      label: "Compliance",
+      icon: "📋",
+      disabled: true, // Phase 3
+      badge: "Phase 3",
+    },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "overview":
+        return <OverviewTab />;
+      case "security":
+        return <SecurityTab />;
+      case "support":
+        return <SupportTab />;
+      case "division":
+        return <DivisionDepartmentTab />;
+      case "settings":
+        return <SettingsTab />;
+      case "activity":
+        return <ActivityLogTab />;
+      case "integrations":
+        return <IntegrationsTab />;
+      case "compliance":
+        return <ComplianceTab />;
+      default:
+        return <OverviewTab />;
+    }
+  };
 
   if (!user) {
     return (
-      <div className="text-center py-8">
-        <p className="text-lg text-gray-700 dark:text-gray-200">You must be signed in to view your profile.</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-semibold text-gray-900 mb-2">
+            Access Denied
+          </div>
+          <div className="text-gray-600">
+            Please log in to access your profile.
+          </div>
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <Card>
-        <h2 className="text-2xl font-bold mb-4">Profile</h2>
-        <div className="space-y-2">
-          <div>
-            <span className="font-semibold">User ID:</span> {user.id}
-          </div>
-          <div>
-            <span className="font-semibold">Email:</span> {user.email}
-          </div>
-          <div>
-            <span className="font-semibold">Created At:</span> {user.created_at}
-          </div>
-          {user.last_sign_in_at && (
-            <div>
-              <span className="font-semibold">Last Sign In:</span> {user.last_sign_in_at}
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <TabNavigation
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            className="p-6"
+          />
         </div>
-      </Card>
-    </div>
-  )
-}
 
-export default ProfilePage 
+        {/* Tab Content */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6">{renderTabContent()}</div>
+        </div>
+
+        {/* Phase Information */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-600 text-lg">📋</div>
+            <div>
+              <div className="font-medium text-blue-900">
+                Development Phases
+              </div>
+              <div className="text-sm text-blue-700 mt-1">
+                <strong>Phase 1 (MVP):</strong> Overview, Security, Support •
+                <strong>Phase 2:</strong> Division/Department, Settings,
+                Activity Log •<strong>Phase 3:</strong> Integrations, Compliance
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePage;

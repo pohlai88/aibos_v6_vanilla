@@ -299,4 +299,15 @@ export type JobLevel = 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
 export type EmploymentStatus = 'active' | 'terminated' | 'on_leave' | 'suspended';
 export type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'intern';
 export type OrganizationStatus = 'active' | 'inactive' | 'suspended' | 'archived';
-export type OrganizationType = 'mother' | 'subsidiary' | 'branch' | 'independent'; 
+export type OrganizationType = 'mother' | 'subsidiary' | 'branch' | 'independent';
+
+export interface UserOrganization {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  status: 'active' | 'inactive' | 'pending';
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+} 
