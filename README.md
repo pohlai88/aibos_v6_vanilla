@@ -10,11 +10,12 @@
 
 ## 🚀 Mission
 
-AIBOS centralizes all core business operations—across every company, region, and industry in our group—into one intuitive, minimal, and secure platform.
+AIBOS centralizes all core business operations—across every company, region, and industry in our group—into one secure internal portal.
 
 - **Clarity & Minimalism:** Inspired by Apple's philosophy—users always know where they are, what to do, and what's next.
-- **Custom-fit & Scalable:** Built for our unique needs; extensible for future external SaaS.
+- **Custom-fit & Scalable:** Built for our unique internal needs; extensible for future requirements.
 - **Universal Collaboration:** Every engineer, in every department and company, shares the same standards and vision.
+- **Internal Access Only:** Secure portal for authorized personnel with proper authentication.
 
 ## 🧑‍💻 Core Tech Stack
 
@@ -29,7 +30,7 @@ AIBOS centralizes all core business operations—across every company, region, a
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Supabase account
 
@@ -56,7 +57,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see your application.
+Visit `http://localhost:3000` to access the internal login portal.
 
 ### 4. Build for Production
 
@@ -153,11 +154,11 @@ All components are in `src/components/` and fully customizable.
 
 ## 📊 Platform Overview
 
-AIBOS provides a unified platform for all business operations with:
+AIBOS provides a unified internal portal for all business operations with:
 
-- **Core Platform**: Authentication, user management, permissions, audit logs
+- **Core Platform**: Secure authentication, user management, permissions, audit logs
 - **Business Modules**: CRM, Finance, HR, Vendor Management, and more
-- **Security & Compliance**: RLS, data privacy, audit trails
+- **Security & Compliance**: RLS, data privacy, audit trails, internal access only
 - **Scalability**: Multi-entity, multi-region support
 
 ## 📚 Documentation Hub
@@ -199,16 +200,31 @@ AIBOS provides a unified platform for all business operations with:
 3. **Building a module?** Follow [docs/module_template.md](./docs/module_template.md)
 4. **Security questions?** Check [docs/security.md](./docs/security.md) and [docs/compliance.md](./docs/compliance.md)
 
+## 🧩 Alignment Rules: UI, Supabase, and Business Logic
+
+All contributors must follow the [Alignment Rules](./docs/alignment_rules.md) for every feature and page:
+
+- Page-by-page walkthrough and review
+- Ensure UI and Supabase (database) are fully aligned and connected
+- Create/update correct Supabase migrations for all data changes
+- Document CRUD operations with exact table/column mappings
+- Map data flow from UI to Supabase and back, for each workflow
+- Update documentation and cross-reference as needed
+
+**This process is mandatory for all new features and changes. See [docs/alignment_rules.md](./docs/alignment_rules.md) for full details and checklist.**
+
 ## 🤝 How to Contribute
 
 ### Quick Start for Contributors
 
 1. **📚 Read the Essentials:**
+
    - [AIBOS_Foundation.md](./AIBOS_Foundation.md) - Core principles and architecture
    - [CONTRIBUTING.md](./CONTRIBUTING.md) - Detailed contribution process
    - [docs/onboarding.md](./docs/onboarding.md) - Developer onboarding guide
 
 2. **🔧 Setup Your Environment:**
+
    ```bash
    git clone https://github.com/your-org/aibos_v6_vanilla.git
    cd aibos_v6_vanilla
@@ -217,6 +233,7 @@ AIBOS provides a unified platform for all business operations with:
    ```
 
 3. **📋 Choose Your Contribution:**
+
    - 🐛 **Bug Fix**: Use [Bug Report Template](./.github/ISSUE_TEMPLATE/bug_report.md)
    - ✨ **Feature**: Use [Feature Request Template](./.github/ISSUE_TEMPLATE/feature_request.md)
    - 📚 **Documentation**: Follow [docs/documentation_maintenance.md](./docs/documentation_maintenance.md)
@@ -245,6 +262,7 @@ Built with ❤️ for the future of our organization.
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Supabase](https://supabase.com/)
 - [Lucide React](https://lucide.dev/)
