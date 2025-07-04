@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Organization, UserOrganization } from "@/types/organization";
-import { OrganizationForm } from "./OrganizationForm";
+import { Organization, UserOrganization, OrganizationFormData } from "@/types/organization";
 import { OrganizationTable } from "./OrganizationTable";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
+import OrganizationForm from "./OrganizationForm";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -84,31 +84,8 @@ export const MultiCompanyPage: React.FC<MultiCompanyPageProps> = ({
     setEditingOrg(null);
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: OrganizationFormData) => {
     try {
-      if (editingOrg) {
-        // Update existing organization
-        const { error } = await supabase
-          .from("organizations")
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString(),
-            updated_by: currentUser?.id,
-          })
-          .eq("id", editingOrg.id);
-
-        if (error) throw error;
-      } else {
-        // Create new organization
-        const { error } = await supabase.from("organizations").insert({
-          ...formData,
-          created_by: currentUser?.id,
-          updated_by: currentUser?.id,
-        });
-
-        if (error) throw error;
-      }
-
       await fetchOrganizations();
       handleFormClose();
     } catch (error) {
@@ -202,18 +179,13 @@ export const MultiCompanyPage: React.FC<MultiCompanyPageProps> = ({
         </div>
 
         {/* Organization Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <OrganizationForm
-                organization={editingOrg}
-                onSubmit={handleFormSubmit}
-                onCancel={handleFormClose}
-                organizations={organizations}
-              />
-            </div>
-          </div>
-        )}
+        <OrganizationForm
+          mode={editingOrg ? 'edit' : 'create'}
+          organizationId={editingOrg?.id}
+          onSuccess={handleFormSubmit}
+          onCancel={handleFormClose}
+          isOpen={showForm}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import Fuse from 'fuse.js';
 
 export interface SearchResult {
   id: string;
@@ -17,6 +18,20 @@ export interface SearchFilters {
   limit?: number;
 }
 
+// Fetch exclusion keywords/paths (stub, to be replaced with dynamic admin config fetch)
+async function getSearchExclusions(): Promise<{ keyword: string; path_pattern?: string }[]> {
+  // TODO: Replace with Supabase fetch from search_exclusions table
+  return [
+    { keyword: "pornography" },
+    { keyword: "confidential" },
+    { keyword: "secret" },
+    // ...more, managed by admin config
+  ];
+}
+
+// NOTE: This version uses a search_index table for global search, and will filter out admin-excluded keywords/paths (to be managed in AdminConfig).
+// The exclusion list and index sync will be further enhanced in the AdminConfig upgrade.
+
 export class SearchService {
   // Global search across all accessible entities
   async globalSearch(
@@ -24,33 +39,35 @@ export class SearchService {
     filters: SearchFilters = {}
   ): Promise<SearchResult[]> {
     if (!searchTerm.trim()) return [];
-
-    const results: SearchResult[] = [];
-    const limit = filters.limit || 10;
-
+    const limit = filters.limit || 1000; // Maximize results
     try {
-      // Search employees (respects RLS automatically)
-      const employeeResults = await this.searchEmployees(searchTerm, limit);
-      results.push(...employeeResults);
-
-      // Search organizations (respects RLS automatically)
-      const orgResults = await this.searchOrganizations(searchTerm, limit);
-      results.push(...orgResults);
-
-      // Search departments (respects RLS automatically)
-      const deptResults = await this.searchDepartments(searchTerm, limit);
-      results.push(...deptResults);
-
-      // Filter by type if specified
-      if (filters.types && filters.types.length > 0) {
-        return results.filter(result => filters.types!.includes(result.type));
-      }
-
-      // Sort by relevance and limit results
-      return results
-        .sort((a, b) => b.relevance - a.relevance)
-        .slice(0, limit);
-
+      // Query the search_index table (no RLS)
+      const { data, error } = await supabase
+        .from('search_index')
+        .select('*')
+        .ilike('title', `%${searchTerm}%`)
+        .limit(limit);
+      if (error) throw error;
+      let results: SearchResult[] = (data || []).map((row: any) => ({
+        id: row.id,
+        type: row.type,
+        title: row.title,
+        subtitle: row.summary,
+        description: row.tags,
+        url: row.url,
+        icon: row.icon || '🔎',
+        relevance: 100 // TODO: Add better scoring
+      }));
+      // Filter out admin-excluded keywords/paths
+      const exclusions = await getSearchExclusions();
+      results = results.filter(r =>
+        !exclusions.some(ex =>
+          (ex.keyword && r.title?.toLowerCase().includes(ex.keyword)) ||
+          (ex.path_pattern && r.url?.startsWith(ex.path_pattern))
+        )
+      );
+      // Sort and return
+      return results.sort((a, b) => b.relevance - a.relevance).slice(0, limit);
     } catch (error) {
       console.error('Global search error:', error);
       return [];
@@ -189,4 +206,19 @@ export class SearchService {
   }
 }
 
-export const searchService = new SearchService(); 
+export const searchService = new SearchService();
+
+// Fuzzy search helper for fallback suggestions
+export function fuzzySearchResults(
+  allResults: SearchResult[],
+  searchTerm: string,
+  limit: number = 3
+): SearchResult[] {
+  if (!searchTerm.trim() || allResults.length === 0) return [];
+  const fuse = new Fuse(allResults, {
+    keys: ['title', 'subtitle', 'description'],
+    threshold: 0.4, // Adjust for strictness
+    includeScore: true,
+  });
+  return fuse.search(searchTerm).slice(0, limit).map(r => r.item);
+} 

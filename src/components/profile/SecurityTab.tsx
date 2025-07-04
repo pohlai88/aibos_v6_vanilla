@@ -1,274 +1,153 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
-const SecurityTab: React.FC = () => {
+interface SecurityPolicy {
+  key: string;
+  value: string;
+}
+interface SecurityEvent {
+  id: number;
+  user_id: string;
+  department: string;
+  event_type: string;
+  event_details: any;
+  ip_address: string;
+  user_agent: string;
+  created_at: string;
+}
+
+interface SecurityTabProps {
+  department?: string; // e.g. 'global', 'hr', etc.
+  isAdmin?: boolean;
+}
+
+const SecurityTab: React.FC<SecurityTabProps> = ({ department = "global", isAdmin = false }) => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [policies, setPolicies] = useState<SecurityPolicy[]>([]);
+  const [events, setEvents] = useState<SecurityEvent[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
 
-  // Mock security settings - these would come from admin config in real implementation
-  const securitySettings = {
-    twoFactorEnabled: true,
-    passwordPolicy: {
-      minLength: 8,
-      requireUppercase: true,
-      requireLowercase: true,
-      requireNumbers: true,
-      requireSpecialChars: true,
-      expiryDays: 90,
-    },
-    sessionTimeout: 30, // minutes
-    maxLoginAttempts: 5,
-    lockoutDuration: 15, // minutes
+  // Fetch security policies
+  const fetchPolicies = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error } = await supabase
+      .from("security_config")
+      .select("policy_key, policy_value")
+      .eq("department", department);
+    if (error) {
+      setError("Failed to load security policies.");
+      setLoading(false);
+      return;
+    }
+    setPolicies((data || []).map((item: any) => ({
+      key: item.policy_key,
+      value: item.policy_value
+    })));
+    setPolicyDraft(Object.fromEntries((data || []).map((p: any) => [p.policy_key, p.policy_value])));
+    setLoading(false);
+  }, [department]);
+
+  // Fetch security events
+  const fetchEvents = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("security_events")
+      .select("*")
+      .eq("department", department)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (!error) setEvents(data || []);
+  }, [department]);
+
+  useEffect(() => {
+    fetchPolicies();
+    fetchEvents();
+  }, [fetchPolicies, fetchEvents]);
+
+  // Handle policy edit
+  const handlePolicyChange = (key: string, value: string) => {
+    setPolicyDraft((prev) => ({ ...prev, [key]: value }));
+  };
+  const handleSavePolicies = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      for (const key of Object.keys(policyDraft)) {
+        await supabase.from("security_config").upsert({
+          department: department,
+          policy_key: key,
+          policy_value: policyDraft[key],
+          updated_by: user?.id || "",
+        }, { onConflict: "department,policy_key" });
+      }
+      setEditMode(false);
+      fetchPolicies();
+    } catch (e) {
+      setError("Failed to save policies.");
+    }
+    setLoading(false);
   };
 
-  const handleEnable2FA = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implement 2FA setup
-      console.log("2FA setup would be implemented here");
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error("Error setting up 2FA:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDisable2FA = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implement 2FA disable
-      console.log("2FA disable would be implemented here");
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error("Error disabling 2FA:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Policy keys to display (can be extended)
+  const policyLabels: Record<string, string> = {
+    "2fa_enabled": "Two-Factor Authentication",
+    "min_password_length": "Minimum Password Length",
+    "require_uppercase": "Require Uppercase",
+    "require_lowercase": "Require Lowercase",
+    "require_numbers": "Require Numbers",
+    "require_special": "Require Special Characters",
+    "password_expiry_days": "Password Expiry (days)",
+    "session_timeout": "Session Timeout (min)",
+    "max_login_attempts": "Max Login Attempts",
+    "lockout_duration": "Lockout Duration (min)",
   };
 
   return (
     <div className="space-y-8">
-      {/* Security Status */}
+      {/* Security Status & Policy */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Security Status
+          Security Policies ({department})
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                securitySettings.twoFactorEnabled
-                  ? "bg-green-500"
-                  : "bg-red-500"
-              }`}
-            ></div>
-            <div>
-              <div className="font-medium text-gray-900">
-                Two-Factor Authentication
+        {loading ? (
+          <div className="text-gray-500">Loading...</div>
+        ) : error ? (
+          <div className="text-red-600">{error}</div>
+        ) : (
+          <div className="space-y-4">
+            {Object.keys(policyLabels).map((key) => (
+              <div key={key} className="flex items-center gap-4">
+                <div className="w-64 font-medium text-gray-900">{policyLabels[key]}</div>
+                {editMode && isAdmin ? (
+                  <input
+                    type="text"
+                    value={policyDraft[key] || ""}
+                    onChange={e => handlePolicyChange(key, e.target.value)}
+                    className="px-2 py-1 border border-gray-300 rounded w-48"
+                  />
+                ) : (
+                  <div className="text-gray-700">{policyDraft[key] ?? <span className="text-gray-400">Not set</span>}</div>
+                )}
               </div>
-              <div className="text-sm text-gray-500">
-                {securitySettings.twoFactorEnabled ? "Enabled" : "Disabled"}
+            ))}
+            {isAdmin && (
+              <div className="flex gap-2 mt-4">
+                {editMode ? (
+                  <>
+                    <button onClick={handleSavePolicies} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    <button onClick={() => { setEditMode(false); fetchPolicies(); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded">Cancel</button>
+                  </>
+                ) : (
+                  <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-blue-600 text-white rounded">Edit Policies</button>
+                )}
               </div>
-            </div>
+            )}
           </div>
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <div>
-              <div className="font-medium text-gray-900">Password Policy</div>
-              <div className="text-sm text-gray-500">Active</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <div>
-              <div className="font-medium text-gray-900">
-                Session Management
-              </div>
-              <div className="text-sm text-gray-500">Active</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Two-Factor Authentication */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Two-Factor Authentication
-        </h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <div className="font-medium text-gray-900">2FA Status</div>
-              <div className="text-sm text-gray-500">
-                {securitySettings.twoFactorEnabled
-                  ? "Two-factor authentication is currently enabled for your account."
-                  : "Two-factor authentication is not enabled. Enable it for enhanced security."}
-              </div>
-            </div>
-            <button
-              onClick={
-                securitySettings.twoFactorEnabled
-                  ? handleDisable2FA
-                  : handleEnable2FA
-              }
-              disabled={loading}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                securitySettings.twoFactorEnabled
-                  ? "bg-red-600 text-white hover:bg-red-700"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  {securitySettings.twoFactorEnabled
-                    ? "Disabling..."
-                    : "Enabling..."}
-                </div>
-              ) : securitySettings.twoFactorEnabled ? (
-                "Disable 2FA"
-              ) : (
-                "Enable 2FA"
-              )}
-            </button>
-          </div>
-
-          {!securitySettings.twoFactorEnabled && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-600 text-lg">ℹ️</div>
-                <div>
-                  <div className="font-medium text-blue-900">
-                    Why enable 2FA?
-                  </div>
-                  <div className="text-sm text-blue-700 mt-1">
-                    Two-factor authentication adds an extra layer of security to
-                    your account by requiring a second form of verification in
-                    addition to your password.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Password Policy */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Password Policy
-        </h2>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium text-gray-900">Minimum Length</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {securitySettings.passwordPolicy.minLength} characters
-              </div>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium text-gray-900">Password Expiry</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {securitySettings.passwordPolicy.expiryDays} days
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="font-medium text-gray-900">Requirements</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    securitySettings.passwordPolicy.requireUppercase
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-700">
-                  Uppercase letters (A-Z)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    securitySettings.passwordPolicy.requireLowercase
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-700">
-                  Lowercase letters (a-z)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    securitySettings.passwordPolicy.requireNumbers
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-700">Numbers (0-9)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    securitySettings.passwordPolicy.requireSpecialChars
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                  }`}
-                ></div>
-                <span className="text-sm text-gray-700">
-                  Special characters
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Session Management */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Session Management
-        </h2>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium text-gray-900">Session Timeout</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {securitySettings.sessionTimeout} minutes
-              </div>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium text-gray-900">
-                Max Login Attempts
-              </div>
-              <div className="text-2xl font-bold text-blue-600">
-                {securitySettings.maxLoginAttempts} attempts
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="text-yellow-600 text-lg">⚠️</div>
-              <div>
-                <div className="font-medium text-yellow-900">
-                  Admin Configuration Required
-                </div>
-                <div className="text-sm text-yellow-700 mt-1">
-                  Security policies are configured by administrators. Contact
-                  your system administrator to modify these settings.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Recent Security Events */}
@@ -276,50 +155,24 @@ const SecurityTab: React.FC = () => {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Recent Security Events
         </h2>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div>
-                <div className="font-medium text-gray-900">
-                  Successful login
+        {events.length === 0 ? (
+          <div className="text-gray-500">No recent events.</div>
+        ) : (
+          <div className="space-y-3">
+            {events.map(ev => (
+              <div key={ev.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div>
+                    <div className="font-medium text-gray-900">{ev.event_type.replace(/_/g, ' ')}</div>
+                    <div className="text-sm text-gray-500">{new Date(ev.created_at).toLocaleString()}</div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-500">Today at 9:30 AM</div>
+                <div className="text-sm text-gray-500">{ev.ip_address || "-"} • {ev.user_agent?.split(" ")[0] || "-"}</div>
               </div>
-            </div>
-            <div className="text-sm text-gray-500">Chrome • 192.168.1.100</div>
+            ))}
           </div>
-
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div>
-                <div className="font-medium text-gray-900">
-                  Password changed
-                </div>
-                <div className="text-sm text-gray-500">
-                  Yesterday at 2:15 PM
-                </div>
-              </div>
-            </div>
-            <div className="text-sm text-gray-500">Safari • 192.168.1.100</div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <div>
-                <div className="font-medium text-gray-900">
-                  Failed login attempt
-                </div>
-                <div className="text-sm text-gray-500">
-                  3 days ago at 11:45 PM
-                </div>
-              </div>
-            </div>
-            <div className="text-sm text-gray-500">Unknown • 203.0.113.45</div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

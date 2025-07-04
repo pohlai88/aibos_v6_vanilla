@@ -1,0 +1,51 @@
+# Phase 2 Security Rules
+# Enforces security requirements for D3, Calendar, and API components
+
+security:
+  d3:
+    pii_redaction: required
+    max_depth: 5 # Organization hierarchy levels
+    max_nodes: 500
+    memory_limit: 50MB
+    fps_threshold: 60
+    
+  api:
+    rls: enforced
+    rate_limit: 100req/min
+    org_filter: required
+    audit_logging: required
+    
+  calendar:
+    timezone_validation: required
+    gdpr_compliance: required
+    data_encryption: required
+    
+  monitoring:
+    performance_alerts: enabled
+    security_alerts: enabled
+    auto_throttling: enabled
+    
+  data_protection:
+    pii_fields:
+      - email
+      - phone
+      - address
+      - tax_id
+      - personal_notes
+    
+    redaction_patterns:
+      email: "***@***"
+      phone: "***-***-****"
+      address: "***"
+      tax_id: "***-**-****"
+      
+  access_control:
+    organization_isolation: required
+    role_based_access: required
+    session_timeout: 3600 # 1 hour
+    
+  audit_requirements:
+    all_operations: logged
+    pii_access: flagged
+    performance_events: tracked
+    security_events: immediate_alert 

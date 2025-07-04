@@ -186,7 +186,16 @@ const NotificationManagement: React.FC = () => {
     }
 
     try {
-      await notificationService.createNotificationTemplate(templateForm);
+      const templateData = {
+        name: templateForm.name,
+        title_template: templateForm.titleTemplate,
+        message_template: templateForm.messageTemplate,
+        type: templateForm.type,
+        priority: templateForm.priority,
+        target_type: templateForm.targetType,
+        is_active: templateForm.isActive,
+      };
+      await notificationService.createNotificationTemplate(templateData);
       setSuccess("Template created successfully!");
       setTemplateForm({
         name: "",
@@ -748,7 +757,7 @@ const NotificationManagement: React.FC = () => {
                     <div>
                       <div className="font-medium">{template.name}</div>
                       <div className="text-sm text-gray-500">
-                        {template.titleTemplate}
+                        {template.title_template}
                       </div>
                     </div>
                   </div>
@@ -762,12 +771,12 @@ const NotificationManagement: React.FC = () => {
                     </span>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        template.isActive
+                        template.is_active
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {template.isActive ? "Active" : "Inactive"}
+                      {template.is_active ? "Active" : "Inactive"}
                     </span>
                   </div>
                 </div>

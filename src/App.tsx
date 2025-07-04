@@ -3,9 +3,11 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { SupabaseProvider } from "./lib/supabase";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import HomePage from "./pages/HomePage";
-import DashboardPage from "./modules/Dashboard/DashboardPage";
+import { DashboardPage } from "./modules/Dashboard";
+import { BusinessOperationsPage } from "./modules/BusinessOperations";
 import LoginPage from "./pages/LoginPage";
-import ProfilePage from "./pages/ProfilePage";
+import { ProfilePage } from "./modules/Profile";
+import { SupportPage } from "./modules/Support";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 import AppShell from "./components/layout/AppShell";
@@ -51,11 +53,31 @@ function App() {
               }
             />
             <Route
+              path="/business"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <BusinessOperationsPage />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profile"
               element={
                 <ProtectedRoute>
                   <AppShell>
                     <ProfilePage />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/help"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <SupportPage />
                   </AppShell>
                 </ProtectedRoute>
               }

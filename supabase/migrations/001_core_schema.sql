@@ -81,6 +81,20 @@ CREATE TABLE organization_locations (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- User Roles Table (for RLS and permissions)
+CREATE TABLE user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL, -- e.g. 'admin', 'hr', 'manager', 'employee'
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX idx_user_roles_role ON user_roles(role);
+CREATE INDEX idx_user_roles_org_id ON user_roles(organization_id);
+
 -- ============================================================================
 -- METADATA-DRIVEN FIELD MANAGEMENT
 -- ============================================================================
@@ -169,6 +183,20 @@ CREATE TABLE employees (
     UNIQUE(organization_id, work_email)
 );
 
+-- Departments (Organizational structure)
+CREATE TABLE departments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(50),
+    description TEXT,
+    parent_department_id UUID REFERENCES departments(id),
+    manager_id UUID REFERENCES employees(id),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Employee Positions (Job roles and hierarchy)
 CREATE TABLE employee_positions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -181,20 +209,6 @@ CREATE TABLE employee_positions (
     start_date DATE NOT NULL,
     end_date DATE,
     is_current BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Departments (Organizational structure)
-CREATE TABLE departments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    code VARCHAR(50),
-    description TEXT,
-    parent_department_id UUID REFERENCES departments(id),
-    manager_id UUID REFERENCES employees(id),
-    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

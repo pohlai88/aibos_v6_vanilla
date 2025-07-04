@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Button from "@/components/ui/Button";
+import { supabase } from "@/lib/supabase";
 
 interface SystemSetting {
   id: string;
@@ -9,6 +10,12 @@ interface SystemSetting {
   type: "text" | "number" | "boolean" | "select";
   category: string;
   options?: string[];
+}
+
+interface SearchExclusion {
+  id: number;
+  keyword: string;
+  path_pattern?: string;
 }
 
 const SystemSettings: React.FC = () => {
@@ -93,6 +100,12 @@ const SystemSettings: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [hasChanges, setHasChanges] = useState(false);
 
+  // --- Search Exclusions State ---
+  const [exclusions, setExclusions] = useState<SearchExclusion[]>([]);
+  const [exclusionLoading, setExclusionLoading] = useState(false);
+  const [newKeyword, setNewKeyword] = useState("");
+  const [newPath, setNewPath] = useState("");
+
   const categories = [
     "all",
     ...Array.from(new Set(settings.map((s) => s.category))),
@@ -166,6 +179,39 @@ const SystemSettings: React.FC = () => {
     // TODO: Implement reset logic
     console.log("Resetting settings...");
     setHasChanges(false);
+  };
+
+  // Fetch exclusions from Supabase
+  const fetchExclusions = useCallback(async () => {
+    setExclusionLoading(true);
+    const { data, error } = await supabase
+      .from("search_exclusions")
+      .select("id, keyword, path_pattern")
+      .order("id", { ascending: true });
+    if (!error) setExclusions(data || []);
+    setExclusionLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchExclusions();
+  }, [fetchExclusions]);
+
+  // Add new exclusion
+  const handleAddExclusion = async () => {
+    if (!newKeyword.trim() && !newPath.trim()) return;
+    await supabase.from("search_exclusions").insert({
+      keyword: newKeyword.trim(),
+      path_pattern: newPath.trim() || null,
+    });
+    setNewKeyword("");
+    setNewPath("");
+    fetchExclusions();
+  };
+
+  // Remove exclusion
+  const handleRemoveExclusion = async (id: number) => {
+    await supabase.from("search_exclusions").delete().eq("id", id);
+    fetchExclusions();
   };
 
   return (
@@ -324,6 +370,53 @@ const SystemSettings: React.FC = () => {
               System Health Check
             </div>
           </Button>
+        </div>
+      </div>
+
+      {/* Search Exclusions Control (Live) */}
+      <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+        <h3 className="font-semibold text-lg text-yellow-800 mb-2">Search Exclusions</h3>
+        <p className="text-yellow-700 text-sm mb-2">
+          Admins can manage forbidden keywords and paths for global search here. These exclusions prevent certain content from appearing in search results, even if it exists in the system.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            placeholder="Keyword (e.g. pornography)"
+            value={newKeyword}
+            onChange={e => setNewKeyword(e.target.value)}
+            className="px-2 py-1 border border-gray-300 rounded"
+          />
+          <input
+            type="text"
+            placeholder="Path pattern (optional)"
+            value={newPath}
+            onChange={e => setNewPath(e.target.value)}
+            className="px-2 py-1 border border-gray-300 rounded"
+          />
+          <Button onClick={handleAddExclusion} className="bg-yellow-600 text-white px-3 py-1 rounded">
+            Add
+          </Button>
+        </div>
+        {exclusionLoading ? (
+          <div className="text-yellow-700 text-sm">Loading exclusions...</div>
+        ) : exclusions.length === 0 ? (
+          <div className="text-yellow-700 text-sm">No exclusions set.</div>
+        ) : (
+          <ul className="list-disc pl-6 text-yellow-800 text-sm">
+            {exclusions.map(ex => (
+              <li key={ex.id} className="flex items-center gap-2">
+                <span>{ex.keyword || <em>(no keyword)</em>}</span>
+                {ex.path_pattern && <span className="ml-2 text-xs text-yellow-600">[{ex.path_pattern}]</span>}
+                <Button onClick={() => handleRemoveExclusion(ex.id)} className="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded">
+                  Remove
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-2 text-xs text-yellow-700">
+          <strong>Note:</strong> This list is live and will be used by the global search engine. More advanced controls and audit logging will be added in future upgrades.
         </div>
       </div>
     </div>

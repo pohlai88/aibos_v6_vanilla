@@ -7,7 +7,7 @@ const UserEnrichmentSection = () => {
   const [savingFullName, setSavingFullName] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
-  const [interests, setInterests] = useState([]);
+  const [interests, setInterests] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState({
     linkedin: "",
     twitter: "",
@@ -106,7 +106,7 @@ const UserEnrichmentSection = () => {
     "Fashion",
   ];
 
-  const handleInterestToggle = (interest) => {
+  const handleInterestToggle = (interest: string) => {
     if (interests.includes(interest)) {
       setInterests(interests.filter((i) => i !== interest));
     } else {
@@ -114,7 +114,7 @@ const UserEnrichmentSection = () => {
     }
   };
 
-  const handleSocialLinkChange = (platform, value) => {
+  const handleSocialLinkChange = (platform: string, value: string) => {
     setSocialLinks((prev) => ({ ...prev, [platform]: value }));
   };
 
@@ -330,121 +330,105 @@ const UserEnrichmentSection = () => {
       {/* Skills Section */}
       <UserSkillsSection />
 
-      {/* Internal Opportunities */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto mt-6">
-        <h2 className="text-2xl font-semibold mb-6">Internal Opportunities</h2>
-        <div className="divide-y divide-gray-100">
-          {adminOpportunities.map((op, idx) => (
-            <div
-              className="flex items-center justify-between py-4 group"
-              key={op.key}
-            >
-              <div>
-                <div className="font-medium text-lg">{op.title}</div>
-                <div className="text-gray-500 text-sm">{op.description}</div>
-              </div>
-              <Switch
-                checked={adminOpportunitiesActive[idx]}
-                onChange={() => handleAdminToggle(idx)}
-                className={`$ {adminOpportunitiesActive[idx] ? 'bg-green-500' : 'bg-gray-300'} relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none`}
-              >
-                <span className="sr-only">Toggle {op.title}</span>
-                <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition ${
-                    adminOpportunitiesActive[idx]
-                      ? "translate-x-7"
-                      : "translate-x-0"
-                  }`}
-                />
-              </Switch>
-            </div>
-          ))}
-          {customOpportunities.map((op, idx) => (
-            <div
-              className="flex items-center justify-between py-4 group"
-              key={idx}
-            >
-              <div className="flex-1">
-                {editingCustomIdx === idx ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      className="font-medium text-lg bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none"
-                      value={editingCustomValue}
-                      onChange={(e) => setEditingCustomValue(e.target.value)}
-                      onBlur={handleEditCustomSave}
-                      autoFocus
+      {/* Internal Opportunities Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Admin Opportunities Card */}
+        <div className="bg-white rounded-xl shadow border p-6 flex flex-col">
+          <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <span className="text-blue-600">Internal Opportunities</span>
+            <span className="text-xs bg-blue-50 text-blue-700 rounded px-2 py-0.5 font-medium">Admin</span>
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">Select which internal opportunities you're open to. These options help your team and managers match you with relevant projects, gigs, or mentoring roles.</p>
+          <div className="space-y-3">
+            {adminOpportunities.map((op, idx) => (
+              <div key={op.key} className="flex items-center justify-between rounded-lg px-3 py-2 bg-gray-50 hover:bg-blue-50 transition">
+                <div>
+                  <div className="font-medium text-gray-900 text-sm">{op.title}</div>
+                  <div className="text-xs text-gray-500">{op.description}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={adminOpportunitiesActive[idx]}
+                    onChange={() => handleAdminToggle(idx)}
+                    className={`${adminOpportunitiesActive[idx] ? "bg-blue-600" : "bg-gray-300"} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+                  >
+                    <span className="sr-only">Toggle {op.title}</span>
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${adminOpportunitiesActive[idx] ? "translate-x-6" : "translate-x-1"}`}
                     />
-                    <button
-                      className="text-blue-500 text-xs"
-                      onClick={handleEditCustomSave}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="text-gray-400 text-xs"
-                      onClick={() => setEditingCustomIdx(null)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-lg">{op.title}</span>
-                    <button
-                      className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-red-500 text-lg"
-                      onClick={() => handleEditCustom(idx)}
-                      title="Edit"
-                    >
-                      ✎
-                    </button>
-                  </div>
-                )}
-                <div className="text-gray-400 text-sm">
-                  Your own opportunity
+                  </Switch>
+                  <span className={`text-xs font-semibold ml-1 ${adminOpportunitiesActive[idx] ? "text-blue-600" : "text-gray-400"}`}>{adminOpportunitiesActive[idx] ? "Yes" : "No"}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={op.active}
-                  onChange={() => handleCustomToggle(idx)}
-                  className={`$ {op.active ? 'bg-green-500' : 'bg-gray-300'} relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none`}
-                >
-                  <span className="sr-only">Toggle {op.title}</span>
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition ${
-                      op.active ? "translate-x-7" : "translate-x-0"
-                    }`}
-                  />
-                </Switch>
-                <button
-                  className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-red-500 text-lg"
-                  onClick={() => handleRemoveCustom(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
+            ))}
+          </div>
+        </div>
+        {/* Custom Opportunities Card */}
+        <div className="bg-white rounded-xl shadow border p-6 flex flex-col">
+          <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <span className="text-green-600">My Open Opportunities</span>
+            <span className="text-xs bg-green-50 text-green-700 rounded px-2 py-0.5 font-medium">Custom</span>
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">Add your own open opportunities or interests. These help others discover how you'd like to contribute or grow within the company.</p>
+          <div className="space-y-3">
+            {customOpportunities.length === 0 && (
+              <div className="text-gray-400 text-sm">No custom opportunities added yet.</div>
+            )}
+            {customOpportunities.map((op, idx) => (
+              <div key={idx} className="flex items-center justify-between rounded-lg px-3 py-2 bg-gray-50 hover:bg-green-50 transition">
+                {editingCustomIdx === idx ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingCustomValue}
+                      onChange={e => setEditingCustomValue(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm mr-2"
+                    />
+                    <button className="btn btn-primary btn-sm mr-1" onClick={handleEditCustomSave}>Save</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => setEditingCustomIdx(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-medium text-gray-900 text-sm">{op.title}</div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={op.active}
+                        onChange={() => handleCustomToggle(idx)}
+                        className={`${op.active ? "bg-green-600" : "bg-gray-300"} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+                      >
+                        <span className="sr-only">Toggle {op.title}</span>
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${op.active ? "translate-x-6" : "translate-x-1"}`}
+                        />
+                      </Switch>
+                      <span className={`text-xs font-semibold ml-1 ${op.active ? "text-green-600" : "text-gray-400"}`}>{op.active ? "Yes" : "No"}</span>
+                      <button className="text-blue-500 hover:text-blue-700 text-xs font-medium" onClick={() => handleEditCustom(idx)}>Edit</button>
+                      <button className="text-red-500 hover:text-red-700 text-xs font-medium" onClick={() => handleRemoveCustom(idx)}>Remove</button>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-          ))}
-          {customOpportunities.length < MAX_CUSTOM_OPPS && (
-            <div className="flex items-center gap-2 py-4">
-              <input
-                className="flex-1 border rounded-full px-4 py-2 text-lg bg-gray-50 focus:bg-white focus:border-blue-400 transition"
-                placeholder="Add your own opportunity..."
-                value={newCustomOpportunity}
-                onChange={(e) => setNewCustomOpportunity(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddCustom();
-                }}
-              />
-              <button
-                className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-5 py-2 shadow transition"
-                onClick={handleAddCustom}
-              >
-                + Add
-              </button>
-            </div>
-          )}
+            ))}
+          </div>
+          {/* Add Custom Opportunity */}
+          <div className="mt-4 flex gap-2">
+            <input
+              type="text"
+              value={newCustomOpportunity}
+              onChange={e => setNewCustomOpportunity(e.target.value)}
+              className="flex-1 border rounded px-3 py-2 text-sm"
+              placeholder="Add a new opportunity..."
+              maxLength={40}
+            />
+            <button
+              className="btn btn-primary"
+              onClick={handleAddCustom}
+              disabled={!newCustomOpportunity.trim() || customOpportunities.length >= MAX_CUSTOM_OPPS}
+            >
+              Add
+            </button>
+          </div>
+          <div className="text-xs text-gray-400 mt-2">Max {MAX_CUSTOM_OPPS} custom opportunities.</div>
         </div>
       </div>
 

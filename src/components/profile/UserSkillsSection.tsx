@@ -33,7 +33,18 @@ const SKILLS = [
 ];
 const PROFICIENCY = ["Beginner", "Intermediate", "Expert"];
 
-const MultiSelectWithOther = ({
+interface MultiSelectWithOtherProps {
+  label: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+  proficiency: Record<string, string>;
+  onProficiencyChange?: (skill: string, level: string | undefined) => void;
+  privacy: Record<string, boolean>;
+  onPrivacyChange?: (skill: string, show: boolean) => void;
+  suggestions?: string[];
+}
+
+const MultiSelectWithOther: React.FC<MultiSelectWithOtherProps> = ({
   label,
   value,
   onChange,
@@ -45,11 +56,11 @@ const MultiSelectWithOther = ({
 }) => {
   const [customSkill, setCustomSkill] = useState("");
 
-  const handleSelect = (skill) => {
+  const handleSelect = (skill: string) => {
     if (value.includes(skill)) {
-      onChange(value.filter((s) => s !== skill));
+      onChange(value.filter((s: string) => s !== skill));
       if (onProficiencyChange) onProficiencyChange(skill, undefined);
-      if (onPrivacyChange) onPrivacyChange(skill, undefined);
+      if (onPrivacyChange) onPrivacyChange(skill, false);
     } else {
       onChange([...value, skill]);
       if (onProficiencyChange) onProficiencyChange(skill, "Beginner");
@@ -57,19 +68,19 @@ const MultiSelectWithOther = ({
     }
   };
 
-  const handleCustomSkill = (e) => {
+  const handleCustomSkill = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomSkill(e.target.value);
     if (e.target.value && !value.includes(e.target.value)) {
-      onChange([...value.filter((s) => s !== "Other"), e.target.value]);
+      onChange([...value.filter((s: string) => s !== "Other"), e.target.value]);
       if (onProficiencyChange) onProficiencyChange(e.target.value, "Beginner");
       if (onPrivacyChange) onPrivacyChange(e.target.value, true);
     }
   };
 
-  const handleRemove = (skill) => {
-    onChange(value.filter((s) => s !== skill));
+  const handleRemove = (skill: string) => {
+    onChange(value.filter((s: string) => s !== skill));
     if (onProficiencyChange) onProficiencyChange(skill, undefined);
-    if (onPrivacyChange) onPrivacyChange(skill, undefined);
+    if (onPrivacyChange) onPrivacyChange(skill, false);
   };
 
   return (
@@ -110,7 +121,7 @@ const MultiSelectWithOther = ({
       {/* Selected skills summary, aligned grid */}
       {value.length > 0 && (
         <div className="mt-4 grid grid-cols-1 gap-2">
-          {value.map((skill) => (
+          {value.map((skill: string) => (
             <div
               key={skill}
               className="grid grid-cols-4 items-center bg-gray-50 rounded-lg px-3 py-2 group relative gap-2"
@@ -193,12 +204,12 @@ const MultiSelectWithOther = ({
 };
 
 const UserSkillsSection = () => {
-  const [skillsImprove, setSkillsImprove] = useState([]);
-  const [skillsOffer, setSkillsOffer] = useState([]);
-  const [proficiencyImprove, setProficiencyImprove] = useState({});
-  const [proficiencyOffer, setProficiencyOffer] = useState({});
-  const [privacyImprove, setPrivacyImprove] = useState({});
-  const [privacyOffer, setPrivacyOffer] = useState({});
+  const [skillsImprove, setSkillsImprove] = useState<string[]>([]);
+  const [skillsOffer, setSkillsOffer] = useState<string[]>([]);
+  const [proficiencyImprove, setProficiencyImprove] = useState<Record<string, string>>({});
+  const [proficiencyOffer, setProficiencyOffer] = useState<Record<string, string>>({});
+  const [privacyImprove, setPrivacyImprove] = useState<Record<string, boolean>>({});
+  const [privacyOffer, setPrivacyOffer] = useState<Record<string, boolean>>({});
   const [showToast, setShowToast] = useState(false);
 
   // Mocked suggestions (could be based on department/role)
@@ -206,16 +217,32 @@ const UserSkillsSection = () => {
   const suggestionsOffer = ["Frontend Development", "QA/Testing"];
 
   // Handlers for proficiency and privacy
-  const handleProficiencyImprove = (skill, level) => {
-    setProficiencyImprove((prev) => ({ ...prev, [skill]: level }));
+  const handleProficiencyImprove = (skill: string, level: string | undefined) => {
+    if (level) {
+      setProficiencyImprove((prev) => ({ ...prev, [skill]: level }));
+    } else {
+      setProficiencyImprove((prev) => {
+        const newState = { ...prev };
+        delete newState[skill];
+        return newState;
+      });
+    }
   };
-  const handleProficiencyOffer = (skill, level) => {
-    setProficiencyOffer((prev) => ({ ...prev, [skill]: level }));
+  const handleProficiencyOffer = (skill: string, level: string | undefined) => {
+    if (level) {
+      setProficiencyOffer((prev) => ({ ...prev, [skill]: level }));
+    } else {
+      setProficiencyOffer((prev) => {
+        const newState = { ...prev };
+        delete newState[skill];
+        return newState;
+      });
+    }
   };
-  const handlePrivacyImprove = (skill, show) => {
+  const handlePrivacyImprove = (skill: string, show: boolean) => {
     setPrivacyImprove((prev) => ({ ...prev, [skill]: show }));
   };
-  const handlePrivacyOffer = (skill, show) => {
+  const handlePrivacyOffer = (skill: string, show: boolean) => {
     setPrivacyOffer((prev) => ({ ...prev, [skill]: show }));
   };
 
