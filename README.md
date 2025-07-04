@@ -1,292 +1,236 @@
-# 🦾 AIBOS – The AI Business Operation System
+# SaaS Project
 
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/your-org/aibos_v6_vanilla/ci.yml?branch=main&style=flat-square&logo=github-actions)](./.github/workflows/ci.yml)
-[![Documentation](https://img.shields.io/badge/docs-100%25%20structured-brightgreen?style=flat-square&logo=read-the-docs)](./docs/)
-[![Validation](https://img.shields.io/badge/validation-automated-blue?style=flat-square&logo=github-actions)](./scripts/pre-push-validation.cjs)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
-[![Security](https://img.shields.io/badge/security-policy-blue?style=flat-square)](./SECURITY.md)
-[![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-Contributor%20Covenant-ff69b4?style=flat-square)](./CODE_OF_CONDUCT.md)
-[![Support](https://img.shields.io/badge/support-guide-available-orange?style=flat-square)](./SUPPORT.md)
+## OpenAPI & API Documentation
 
-## 🚀 Mission
+This project uses FastAPI, which provides interactive API documentation at `/docs` (Swagger UI) and `/redoc` (ReDoc) when the server is running. These docs are auto-generated from the code and include all endpoints, request/response models, and authentication requirements.
 
-AIBOS centralizes all core business operations—across every company, region, and industry in our group—into one secure internal portal.
+- To view the docs, start the server and visit: `http://localhost:8000/docs`
+- For API consumers, see the OpenAPI schema at: `http://localhost:8000/openapi.json`
 
-- **Clarity & Minimalism:** Inspired by Apple's philosophy—users always know where they are, what to do, and what's next.
-- **Custom-fit & Scalable:** Built for our unique internal needs; extensible for future requirements.
-- **Universal Collaboration:** Every engineer, in every department and company, shares the same standards and vision.
-- **Internal Access Only:** Secure portal for authorized personnel with proper authentication.
+## User Onboarding Guide
 
-## 🧑‍💻 Core Tech Stack
+1. **Sign Up**: Register a new account via the `/auth/register` endpoint or the web UI.
+2. **Create Organization**: Set up your company/tenant profile.
+3. **Invite Users**: Add team members and assign roles (Owner, Accountant, Auditor, etc.).
+4. **Configure Chart of Accounts**: Import or customize your chart of accounts.
+5. **Start Recording Transactions**: Use the API or UI to create journal entries, invoices, and more.
+6. **Review Reports**: Access real-time financial statements and compliance dashboards.
 
-- **Frontend:** HTML + Vanilla JS + TypeScript + Vite
-- **Styling:** Tailwind CSS + PostCSS
-- **Backend/Data:** Supabase (Postgres, Auth, Realtime, Storage)
-- **AI Development:** Copilot, Cursor AI
+## Key Features
 
-> No custom backend frameworks (Node.js, Nest.js, etc.) unless universally required and approved.
+- **Multi-Currency Support**: Record transactions in multiple currencies with FX gain/loss calculation and reporting.
+- **Audit Trail**: All journal postings and critical actions are logged for compliance and traceability.
+- **Automated Financial Validation**: Nightly and on-demand validation of financial statements, trial balance, and account reasonableness.
+- **Subscription & Recurring Billing**: Built-in support for SaaS billing cycles, deferred revenue, and revenue recognition.
+- **Comprehensive API**: Modern RESTful API with OpenAPI/Swagger docs, authentication, and role-based access control.
+- **Deployment Ready**: Docker, k8s, and cloud deployment guides included.
 
-## 🚀 Quick Start
+## Common Bash/NPM Commands
 
-### Prerequisites
+| Command Name           | Usage/Where to Use                      |
+|-----------------------|-----------------------------------------|
+| npm run update-tasks  | Auto-update the tracking.md task table  |
+| node scripts/update-task-list.js | Manual table update (advanced) |
 
-- Node.js 18+
-- npm or yarn
-- Supabase account
+> Run these commands from the project root directory.
 
-### 1. Clone & Install
+## Project Health & Audit
 
-```bash
-git clone https://github.com/pohlai88/aibos_v6.html.git
-cd aibos_v6.html
-npm install
-```
+- Run `python project_health_assessor.py` for a health and audit readiness report.
+- See `docs/` for disaster recovery, onboarding, multi-currency, payment gateway, and data export guides.
+- Unit tests: `pytest tests/unit/ledger/test_journal_posting.py` (journal posting, audit logging, multi-currency).
 
-### 2. Environment Setup
+## Quick Start
 
-Create a `.env` file in the root directory:
+1. **Clone the repo**
+2. **Install dependencies**: `pip install -r requirements.txt` (and/or `npm install` for UI)
+3. **Set up environment**: Copy `env.example` to `.env` and configure as needed
+4. **Run the server**: `uvicorn main:app --reload`
+5. **Access API docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+## KPMG & MFRS Compliance Intelligence (AI-BOS USP)
 
-### 3. Run Development Server
+AI-BOS delivers real-time, enterprise-grade compliance by combining:
+- **KPMG/Big 4 Advisory:** Embedded best-practice guidance, remediation, and references for every compliance rule and violation.
+- **Automated MFRS/IFRS Validation:** Modular, extensible engine for Malaysian and international standards, mapped to KPMG advice.
+- **Actionable Analytics:**
+  - `/compliance/advisory` API: Returns all KPMG/Big 4 compliance metadata for UI, SDK, and audit tools.
+  - `/compliance/analytics` API: Real-time analytics on top MFRS violations, mapped to KPMG advice and remediation—ready for dashboards and adaptive UI.
+- **Adaptive UI/UX Ready:** Surface KPMG advice, remediation, and references contextually in your frontend, tooltips, dashboards, and error messages.
+- **Audit-Ready by Design:** Every compliance warning or dashboard insight comes with KPMG/Big 4 guidance, making compliance actionable and transparent for users, auditors, and regulators.
 
-```bash
-npm run dev
-```
-
-Visit `http://localhost:3000` to access the internal login portal.
-
-### 4. Build for Production
-
-```bash
-npm run build
-```
-
-## 🗂️ Project Structure
-
-```
-aibos/
-├── src/
-│   ├── core/        # Platform core (auth, user/entity mgmt, permissions, navigation)
-│   ├── modules/     # Business modules (CRM, Vendor, Finance, HRM, etc.)
-│   ├── components/  # Shared UI components
-│   ├── types/       # Data models, roles, permissions
-│   ├── hooks/       # Custom hooks
-│   ├── utils/       # Helpers
-│   └── styles/      # Global styles
-├── supabase/        # DB schema, policies
-├── .cursorrules     # AI coding standards
-├── README.md
-├── AIBOS_Foundation.md
-└── CONTRIBUTING.md
-```
-
-## 🔧 Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run deploy` - Deploy to GitHub Pages
-
-## 🌐 Deployment
-
-This project is configured for automatic deployment to GitHub Pages:
-
-1. **Automatic Deployment**: Push to `main` branch triggers deployment
-2. **Manual Deployment**: Use GitHub Actions "Deploy" workflow
-3. **Environment Variables**: Set in GitHub repository secrets:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-
-### Manual Deployment
-
-```bash
-npm run deploy
-```
-
-## 🔐 Supabase Setup
-
-### 1. Create Supabase Project
-
-1. Go to [supabase.com](https://supabase.com)
-2. Create a new project
-3. Copy your project URL and anon key
-
-### 2. Database Schema
-
-The application works with Supabase's built-in auth system. Additional tables can be added as needed.
-
-### 3. Row Level Security (RLS)
-
-Enable RLS on your tables and create appropriate policies:
-
-```sql
--- Example policy for user data
-CREATE POLICY "Users can view own data" ON profiles
-FOR SELECT USING (auth.uid() = user_id);
-```
-
-## 🎨 Customization
-
-### Colors & Theming
-
-Edit `tailwind.config.js` to customize colors:
-
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        // Your brand colors
-      }
-    }
-  }
-}
-```
-
-### Components
-
-All components are in `src/components/` and fully customizable.
-
-## 📊 Platform Overview
-
-AIBOS provides a unified internal portal for all business operations with:
-
-- **Core Platform**: Secure authentication, user management, permissions, audit logs
-- **Business Modules**: CRM, Finance, HR, Vendor Management, and more
-- **Security & Compliance**: RLS, data privacy, audit trails, internal access only
-- **Scalability**: Multi-entity, multi-region support
-
-## 📚 Documentation Hub
-
-**All contributors, engineers, and stakeholders must reference these documents for guidance and compliance.**
-
-### 📑 Documentation Map
-
-- [docs/architecture.md](./docs/architecture.md) — Technical blueprint, system overview, data flows
-- [docs/core_vs_module.md](./docs/core_vs_module.md) — Separation of concerns: core vs modules
-- [docs/security.md](./docs/security.md) — Security strategy, secrets, access control, incident response
-- [docs/compliance.md](./docs/compliance.md) — Data privacy, audit, regional/legal requirements
-- [docs/testing.md](./docs/testing.md) — Automated/manual testing, coverage, process
-- [docs/ci_cd.md](./docs/ci_cd.md) — Build, deployment, and release standards
-- [docs/api_contracts.md](./docs/api_contracts.md) — API and integration guidelines
-- [docs/onboarding.md](./docs/onboarding.md) — Engineer, module, and entity onboarding
-- [docs/module_template.md](./docs/module_template.md) — How to structure and document a new business module
-- [docs/incident_response.md](./docs/incident_response.md) — Process for handling incidents/outages/breaches
-- [docs/faq.md](./docs/faq.md) — Common technical and operational questions
-- [docs/business_rules.md](./docs/business_rules.md) — Domain rules, cross-entity logic, compliance mapping
-- [docs/user_manual.md](./docs/user_manual.md) — End-user guidance and onboarding
-- [docs/decision_log.md](./docs/decision_log.md) — Rationale for major architectural and policy decisions
-- [docs/glossary.md](./docs/glossary.md) — Definitions of key terms
-- [docs/style_guide.md](./docs/style_guide.md) — Visual and code style conventions
-- [docs/localization.md](./docs/localization.md) — Policies for i18n/a11y and multi-region support
-- [docs/deployment_zones.md](./docs/deployment_zones.md) — Data residency and hosting architecture
-- [docs/database.md](./docs/database.md) — Database schema, migrations, and data management
-- [docs/performance.md](./docs/performance.md) — Performance monitoring and optimization
-- [docs/troubleshooting.md](./docs/troubleshooting.md) — Common issues and support procedures
-- [docs/data_migration.md](./docs/data_migration.md) — Data import/export and migration procedures
-- [docs/documentation_maintenance.md](./docs/documentation_maintenance.md) — Documentation sync and maintenance procedures
-- [docs/github_copilot_goalkeeper.md](./docs/github_copilot_goalkeeper.md) — GitHub Copilot secondary goalkeeper protocol
-- [docs/TEAMS.md](./docs/TEAMS.md) — Team organization and contributor recognition
-
-### 🆕 Support System Documentation
-
-- [docs/SUPPORT_SYSTEM_TESTING.md](./docs/SUPPORT_SYSTEM_TESTING.md) — Comprehensive testing guide for support features
-- [SUPPORT_SYSTEM_SUMMARY.md](./SUPPORT_SYSTEM_SUMMARY.md) — Overview of support system architecture and features
-
-### 🚀 Documentation Quick Start
-
-1. **New to AIBOS?** Start with [AIBOS_Foundation.md](./AIBOS_Foundation.md) and [docs/onboarding.md](./docs/onboarding.md)
-2. **Developer?** Review [docs/architecture.md](./docs/architecture.md) and [docs/style_guide.md](./docs/style_guide.md)
-3. **Building a module?** Follow [docs/module_template.md](./docs/module_template.md)
-4. **Security questions?** Check [docs/security.md](./docs/security.md) and [docs/compliance.md](./docs/compliance.md)
-
-## 🧩 Alignment Rules: UI, Supabase, and Business Logic
-
-All contributors must follow the [Alignment Rules](./docs/alignment_rules.md) for every feature and page:
-
-- Page-by-page walkthrough and review
-- Ensure UI and Supabase (database) are fully aligned and connected
-- Create/update correct Supabase migrations for all data changes
-- Document CRUD operations with exact table/column mappings
-- Map data flow from UI to Supabase and back, for each workflow
-- Update documentation and cross-reference as needed
-
-**This process is mandatory for all new features and changes. See [docs/alignment_rules.md](./docs/alignment_rules.md) for full details and checklist.**
-
-## 🤝 How to Contribute
-
-### Quick Start for Contributors
-
-1. **📚 Read the Essentials:**
-
-   - [AIBOS_Foundation.md](./AIBOS_Foundation.md) - Core principles and architecture
-   - [CONTRIBUTING.md](./CONTRIBUTING.md) - Detailed contribution process
-   - [docs/onboarding.md](./docs/onboarding.md) - Developer onboarding guide
-
-2. **🔧 Setup Your Environment:**
-
-   ```bash
-   git clone https://github.com/your-org/aibos_v6_vanilla.git
-   cd aibos_v6_vanilla
-   npm install
-   npm run dev
-   ```
-
-3. **📋 Choose Your Contribution:**
-
-   - 🐛 **Bug Fix**: Use [Bug Report Template](./.github/ISSUE_TEMPLATE/bug_report.md)
-   - ✨ **Feature**: Use [Feature Request Template](./.github/ISSUE_TEMPLATE/feature_request.md)
-   - 📚 **Documentation**: Follow [docs/documentation_maintenance.md](./docs/documentation_maintenance.md)
-   - 🔧 **Module Development**: Use [docs/module_template.md](./docs/module_template.md)
-
-4. **✅ Quality Assurance:**
-   - Run `npm run pre-push-check` before submitting
-   - Follow [docs/testing.md](./docs/testing.md) for test requirements
-   - Ensure [docs/security.md](./docs/security.md) compliance
-
-### 🆘 Need Help?
-
-- **General Questions**: [GitHub Discussions](https://github.com/your-org/aibos_v6_vanilla/discussions)
-- **Support**: [SUPPORT.md](./SUPPORT.md)
-- **Security Issues**: [SECURITY.md](./SECURITY.md)
-- **Code of Conduct**: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+**Key Selling Point:**
+> “AI-BOS delivers real-time, KPMG- and MFRS-powered compliance intelligence, with actionable guidance and analytics at every step—making your finance team audit-ready, always.”
 
 ---
 
-**All rules, governance, and detailed policies are in [AIBOS_Foundation.md](./AIBOS_Foundation.md).**
+# ✅ How MFRS and KPMG Intelligent Solutions Work Together in SaaS
+
+MFRS → is the **compliance standard** — sets the rules for how to recognize, measure, present, and disclose financial transactions.
+
+KPMG’s intelligent tools → bring:
+* methodologies for implementation,
+* checklists for regulatory compliance,
+* automation tools,
+* risk management insights,
+* audit-friendly processes.
+
+→ **Your SaaS combines BOTH:**
+
+✅ MFRS = **the “what”** (rules)
+✅ KPMG intelligence = **the “how”** (best practices + tools)
+
+**Together, in a SaaS platform:**
+* you embed MFRS-compliant accounting logic (e.g. revenue recognition, leases, financial instruments)
+* you layer on KPMG-inspired intelligence:
+  * compliance checks
+  * audit trails
+  * automated disclosures
+  * risk scoring
+  * analytics
+
+This gives users:
+✅ compliance certainty
+✅ operational efficiency
+✅ audit readiness
+✅ competitive edge
 
 ---
 
-Built with ❤️ for the future of our organization.
+# ⭐️ Top 10 “Must-Have” Features
 
-## 📝 License
+## (in an MFRS + KPMG-Intelligent SaaS)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Supabase](https://supabase.com/)
-- [Lucide React](https://lucide.dev/)
-
-## 📞 Support
-
-For support, email support@aibos.com or join our community discussions.
+Here’s your “critical list.” These should absolutely be part of a powerful accounting SaaS that aims to blend MFRS compliance with KPMG-level best practice.
 
 ---
 
-**Built with ❤️ for modern SaaS applications**
+## ✅ 1. Automated Revenue Recognition Engine
+* MFRS 15 compliance:
+  * 5-step revenue recognition model
+  * Multiple performance obligations
+  * Variable consideration
+* KPMG intelligence:
+  * Revenue scenarios mapping
+  * Disclosure templates
 
-## Shared UI Components
+## ✅ 2. Lease Accounting Module
+* MFRS 16 compliance:
+  * Right-of-Use asset calculations
+  * Lease liability schedules
+  * Interest and depreciation splits
+* KPMG intelligence:
+  * Lease classification tools
+  * Disclosure reporting
 
-### Modal
+## ✅ 3. Financial Instruments Valuation Engine
+* MFRS 9 compliance:
+  * ECL (Expected Credit Loss) calculations
+  * Classification (amortized cost, FVOCI, FVTPL)
+* KPMG intelligence:
+  * Risk models for credit loss
+  * Audit-ready valuation reporting
 
-A reusable, accessible Modal component is available at `src/components/ui/Modal.tsx`.
+## ✅ 4. Automated Disclosure Management
+* MFRS compliance:
+  * Mandatory financial statement disclosures
+* KPMG intelligence:
+  * Pre-built disclosure templates
+  * Checklists for new standards
 
-- Use this for all modal dialogs, confirmations, and overlays.
-- Ensures consistent UX, accessibility, and styling across the app.
-- Supports title, children, onClose, and custom action buttons.
-- See the file for usage examples.
+## ✅ 5. Consolidation & Group Reporting Engine
+* MFRS 10, 12, 127:
+  * Group structures
+  * Minority interests
+  * Intercompany eliminations
+* KPMG intelligence:
+  * Automated group adjustments
+  * Disclosure tracking
+
+## ✅ 6. Audit Trail & Traceability
+* MFRS requires:
+  * documentation supporting financial statements
+* KPMG intelligence:
+  * logs of who changed what, when
+  * drill-down capability for auditors
+
+## ✅ 7. Tax Provision & Deferred Tax Engine
+* MFRS 112 compliance:
+  * recognition of deferred tax assets/liabilities
+* KPMG intelligence:
+  * tax impact calculators
+  * scenario analysis
+
+## ✅ 8. IFRS-MFRS Differences Checker
+* MFRS follows IFRS but local differences exist.
+* KPMG tools:
+  * comparative tables for IFRS vs. MFRS
+  * local-specific disclosures
+
+## ✅ 9. Risk & Compliance Dashboard
+* MFRS compliance:
+  * No explicit dashboards, but risk reporting is implicit.
+* KPMG intelligence:
+  * visual risk indicators
+  * ECL risk scoring
+  * regulatory watchlists
+
+## ✅ 10. Scenario-Based Financial Modeling
+* MFRS:
+  * requires sensitivity analyses for disclosures
+* KPMG intelligence:
+  * scenario planning tools
+  * “what if” modeling for accounting changes
+
+---
+
+# 💡 Good-to-Have Features
+
+These are powerful value-adds but not strictly “must-haves” to meet base compliance:
+
+## ✅ 1. AI-driven Narrative Reporting
+* Converts financials into readable narratives
+* KPMG intelligence:
+  * Natural Language Generation templates
+
+## ✅ 2. Automated Financial Statement Generator
+* Pulls data into polished statements
+* KPMG intelligence:
+  * preformatted templates
+
+## ✅ 3. Materiality Calculator
+* Helps determine:
+  * what must be disclosed
+  * thresholds for significant items
+* KPMG approach:
+  * quantitative + qualitative models
+
+## ✅ 4. IPO Readiness Health Check
+* Benchmarks:
+  * MFRS compliance
+  * corporate governance
+* KPMG tools:
+  * checklists for IPO
+
+## ✅ 5. MFRS Update Tracker
+* Monitors changes in MFRS/IFRS
+* KPMG intelligence:
+  * keeps your SaaS current with regulatory updates
+
+---
+
+# ✅ The Big Picture
+
+Your SaaS can become:
+* a **compliance powerhouse** → driven by MFRS rules
+* an **intelligent finance platform** → infused with KPMG methodologies
+* a **future-proof product** → equipped for IPO, audits, and global expansion
+
+✅ The synergy:
+* MFRS = the strict rulebook
+* KPMG intelligence = the optimized, efficient path to implement those rules
+
+**Bottom line:**
+✅ Build the 10 “must-haves” to guarantee compliance and audit readiness.
+✅ Layer on the 5 “good-to-haves” for differentiation and competitive edge.
+✅ This blend can make your SaaS **one of the strongest accounting platforms for Malaysian and regional markets.**

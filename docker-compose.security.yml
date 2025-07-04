@@ -1,0 +1,287 @@
+# Docker Compose for Distributed Security Services
+# Local development and testing environment
+
+version: '3.8'
+
+services:
+  # Redis for distributed state management
+  redis:
+    image: redis:7-alpine
+    container_name: aibos-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=aibos_redis_password
+    networks:
+      - aibos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Security Audit Service - Instance 1
+  security-audit-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.security
+    container_name: aibos-security-audit-1
+    ports:
+      - "8081:8080"
+      - "9091:9090"
+    environment:
+      - SERVICE_NAME=security-audit-service
+      - INSTANCE_ID=1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=aibos_redis_password
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=60
+      - LOAD_BALANCER_ALGORITHM=weighted
+      - HEALTH_CHECK_INTERVAL=30
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    networks:
+      - aibos-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Security Audit Service - Instance 2
+  security-audit-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.security
+    container_name: aibos-security-audit-2
+    ports:
+      - "8082:8080"
+      - "9092:9090"
+    environment:
+      - SERVICE_NAME=security-audit-service
+      - INSTANCE_ID=2
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=aibos_redis_password
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=60
+      - LOAD_BALANCER_ALGORITHM=weighted
+      - HEALTH_CHECK_INTERVAL=30
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    networks:
+      - aibos-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Security Audit Service - Instance 3
+  security-audit-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.security
+    container_name: aibos-security-audit-3
+    ports:
+      - "8083:8080"
+      - "9093:9090"
+    environment:
+      - SERVICE_NAME=security-audit-service
+      - INSTANCE_ID=3
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=aibos_redis_password
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=60
+      - LOAD_BALANCER_ALGORITHM=weighted
+      - HEALTH_CHECK_INTERVAL=30
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    networks:
+      - aibos-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Load Balancer (HAProxy)
+  haproxy:
+    image: haproxy:2.8-alpine
+    container_name: aibos-haproxy
+    ports:
+      - "8080:8080"
+      - "8404:8404"  # HAProxy stats
+    volumes:
+      - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - aibos-network
+    depends_on:
+      - security-audit-1
+      - security-audit-2
+      - security-audit-3
+    restart: unless-stopped
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: aibos-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - aibos-network
+    restart: unless-stopped
+
+  # Grafana for monitoring dashboards
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: aibos-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=aibos_admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - aibos-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.47
+    container_name: aibos-jaeger
+    ports:
+      - "16686:16686"  # UI
+      - "14268:14268"  # HTTP collector
+      - "14250:14250"  # gRPC collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - aibos-network
+    restart: unless-stopped
+
+  # Elasticsearch for log aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: aibos-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - aibos-network
+    restart: unless-stopped
+
+  # Kibana for log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: aibos-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    networks:
+      - aibos-network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # Filebeat for log shipping
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.8.0
+    container_name: aibos-filebeat
+    user: root
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/var/log/aibos:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - aibos-network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # Security testing service
+  security-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.security-tester
+    container_name: aibos-security-tester
+    environment:
+      - TARGET_SERVICE=http://haproxy:8080
+      - TEST_DURATION=300
+      - CONCURRENT_USERS=10
+    volumes:
+      - ./test-results:/app/test-results
+    networks:
+      - aibos-network
+    depends_on:
+      - haproxy
+    restart: "no"
+
+volumes:
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  aibos-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "ledger"
+version = "1.2.0"
+description = "Core ledger and bookkeeping functionality for AIBOS"
+
+[tool.aibos]
+changelog = [
+    "Added security audit features",
+    "Implemented cryptographic audit trail",
+    "Added multi-tenant support",
+    "Fixed balance sheet calculation bugs"
+] 

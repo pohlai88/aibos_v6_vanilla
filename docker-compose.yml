@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # AIBOS Application
+  aibos:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://aibos:aibos@postgres:5432/aibos_dev
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - DEBUG=true
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=aibos_dev
+      - POSTGRES_USER=aibos
+      - POSTGRES_PASSWORD=aibos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # HAProxy Load Balancer (optional)
+  haproxy:
+    image: haproxy:2.8
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - aibos
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data: 
