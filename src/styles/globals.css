@@ -95,6 +95,15 @@
   .toast-fixed {
     position: fixed;
   }
+
+  /*
+   * Dropdown scroll utility
+   * Usage: <div class="dropdown-scroll">...</div>
+   */
+  .dropdown-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
 }
 
 @layer utilities {

@@ -139,6 +139,15 @@ const HeroSection: React.FC = () => {
     [orbitIcons.length]
   );
 
+  const isSpecialShape = (icon: any) => {
+    return (
+      icon === dlbBear ||
+      icon === dlbLogo ||
+      icon === boyAvatar ||
+      icon === footerIcon
+    );
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start bg-white overflow-x-hidden">
       {/* Icon cluster - higher up */}
@@ -175,106 +184,75 @@ const HeroSection: React.FC = () => {
             (params.maxScale - params.minScale) *
               (0.5 +
                 0.5 * Math.sin(time * (0.5 + i * 0.13) + params.scaleOffset));
-          const isAvatar = icon === girlAvatar || icon === boyAvatar;
-          const isFooter = icon === footerIcon;
-          const isNoBackground =
-            icon === dlbBear ||
-            icon === dlbLogo ||
-            icon === atIcon ||
-            icon === blenderIcon ||
-            icon === Group30Icon ||
-            icon === Group13Icon ||
-            icon === Group3Icon ||
-            icon === GitHubIcon ||
-            icon === FigmaIcon ||
-            icon === hashIcon ||
-            icon === InstagramIcon ||
-            icon === shieldIcon ||
-            icon === YouTubeIcon ||
-            icon === wifiIcon ||
-            icon === quickAddIcon ||
-            icon === rca2;
-          return isFooter ? (
-            <motion.img
-              key={i}
-              className="absolute z-20"
-              src={icon}
-              alt="Footer Icon"
-              style={{
-                left: "50%",
-                top: "50%",
-                width: iconSize * 1.2, // Slightly larger for better visibility
-                height: iconSize * 1.2,
-                transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
-                objectFit: "contain", // Use contain to preserve aspect ratio
-                willChange: "transform",
-                pointerEvents: "auto",
-                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))", // Add subtle shadow
-              }}
-              whileHover={{
-                scale: 1.2,
-                // Removed filter animation to avoid invalid keyframe values
-                transition: { duration: 0.2 },
-              }}
-              transition={{ duration: 0.1 }}
-            />
-          ) : isAvatar || isNoBackground ? (
-            <motion.img
-              key={i}
-              className="absolute z-20"
-              src={icon}
-              alt={`Icon ${i}`}
-              style={{
-                left: "50%",
-                top: "50%",
-                width: iconSize,
-                height: iconSize,
-                transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
-                objectFit: "cover",
-                willChange: "transform",
-                pointerEvents: "auto",
-              }}
-              whileHover={{
-                scale: 1.15,
-                filter: "brightness(1.1)",
-                transition: { duration: 0.2 },
-              }}
-              transition={{ duration: 0.1 }}
-            />
-          ) : (
-            <motion.div
-              key={i}
-              className="absolute z-20"
-              style={{
-                left: "50%",
-                top: "50%",
-                width: iconSize,
-                height: iconSize,
-                transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
-                borderRadius: "9999px",
-                background: "white",
-                boxShadow: "0 2px 12px 0 rgba(0,0,0,0.10)",
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                willChange: "transform",
-                pointerEvents: "auto",
-              }}
-              whileHover={{
-                scale: 1.15,
-                filter: "brightness(1.1)",
-                transition: { duration: 0.2 },
-              }}
-              transition={{ duration: 0.1 }}
-            >
-              <img
+
+          if (isSpecialShape(icon)) {
+            // Render as original (no forced circle)
+            return (
+              <motion.img
+                key={i}
+                className="absolute z-20"
                 src={icon}
                 alt={`Icon ${i}`}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  width: iconSize,
+                  height: iconSize,
+                  transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
+                  objectFit: "contain",
+                  willChange: "transform",
+                  pointerEvents: "auto",
+                }}
+                whileHover={{
+                  scale: 1.15,
+                  filter: "brightness(1.1)",
+                  transition: { duration: 0.2 },
+                }}
+                transition={{ duration: 0.1 }}
               />
-            </motion.div>
-          );
+            );
+          } else {
+            // Standardized round icon
+            return (
+              <motion.div
+                key={i}
+                className="absolute z-20"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  width: iconSize,
+                  height: iconSize,
+                  transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  boxShadow: "0 8px 32px 0 rgba(0,0,0,0.12)",
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  willChange: "transform",
+                  pointerEvents: "auto",
+                }}
+                whileHover={{
+                  scale: 1.15,
+                  filter: "brightness(1.1)",
+                  transition: { duration: 0.2 },
+                }}
+                transition={{ duration: 0.1 }}
+              >
+                <img
+                  src={icon}
+                  alt={`Icon ${i}`}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+              </motion.div>
+            );
+          }
         })}
       </div>
       {/* Main content below cluster - further down */}

@@ -92,6 +92,17 @@ const ModuleManagement: React.FC = () => {
       dependencies: [],
       lastUpdated: "2024-01-01",
     },
+    {
+      id: "support",
+      name: "Support System",
+      description: "AI agent, feature requests, release notes, and analytics",
+      icon: "🤖",
+      status: "enabled",
+      version: "1.0.0",
+      category: "Support",
+      dependencies: [],
+      lastUpdated: "2024-01-20",
+    },
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState("all");

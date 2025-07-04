@@ -44,4 +44,7 @@ export interface DashboardStats {
   change: string
   icon: React.ComponentType<{ className?: string }>
   color: string
-} 
+}
+
+// Re-export support system types
+export * from './support'; 

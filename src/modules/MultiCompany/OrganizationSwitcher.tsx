@@ -7,6 +7,8 @@ interface OrganizationSwitcherProps {
   organizations: Organization[];
   userOrganizations: UserOrganization[];
   onSwitch: () => void;
+  currentOrg?: Organization;
+  onOrgChange?: (org: Organization) => void;
 }
 
 export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({

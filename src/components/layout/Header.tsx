@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MoodPicker from "../ui/MoodPicker";
 import ThemeToggle from "../ui/ThemeToggle";
 import girlAvatar from "../icons/Avatars.png";
@@ -7,12 +7,13 @@ import boyAvatar from "../icons/Avatars (1).png";
 import { useQuickAddActions } from "../../contexts/QuickAddContext";
 import { useAuth } from "../../contexts/AuthContext";
 import quickAdd3 from "../icons/quick add 3.png";
-import { searchService, SearchResult } from "../../lib/searchService";
+import { searchService, SearchResult, fuzzySearchResults } from "../../lib/searchService";
 import {
   notificationService,
   Notification,
 } from "../../lib/notificationService";
 import { supabase } from "../../lib/supabase";
+import QuickHelpModal from "../support/QuickHelpModal";
 
 const menuItems = [
   { icon: "👤", label: "Profile", to: "/profile" },
@@ -25,7 +26,7 @@ const menuItems = [
       /* TODO: theme toggle */
     },
   },
-  { icon: "❓", label: "Help", to: "/help" },
+  { icon: "❓", label: "Support Center", to: "/help", action: "help" },
   { icon: "💬", label: "Feedback", to: "/feedback" },
   { icon: "🚪", label: "Logout", to: "/logout" },
 ];
@@ -94,6 +95,9 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
     useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const today = new Date();
   const isBirthday = today.getMonth() === 6 && today.getDate() === 3; // July 3 (mock)
@@ -140,6 +144,12 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
 
+  // Add state for fuzzy suggestions
+  const [fuzzySuggestions, setFuzzySuggestions] = useState<SearchResult[]>([]);
+
+  // Help modal state
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
   // Sync selectedAvatar with userProfile.avatar_url (SSOT)
   useEffect(() => {
     if (userProfile?.avatar_url) {
@@ -164,14 +174,24 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
           const results = await searchService.quickSearch(searchTerm.trim(), 8);
           setSearchResults(results);
           setSearchOpen(true);
+          // If no results, try fuzzy suggestions
+          if (results.length === 0) {
+            // Get all possible entities for fuzzy fallback
+            const allResults = await searchService.globalSearch("", { limit: 50 });
+            setFuzzySuggestions(fuzzySearchResults(allResults, searchTerm.trim(), 3));
+          } else {
+            setFuzzySuggestions([]);
+          }
         } catch (error) {
           console.error("Search error:", error);
           setSearchResults([]);
+          setFuzzySuggestions([]);
         } finally {
           setSearchLoading(false);
         }
       } else {
         setSearchResults([]);
+        setFuzzySuggestions([]);
         setSearchOpen(false);
       }
     }, 300);
@@ -305,10 +325,12 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
   const markAllRead = async () => {
     try {
       await notificationService.markAllAsRead();
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || "";
       setNotifications(
         notifications.map((n) => ({
           ...n,
-          read_by: [...(n.read_by || []), supabase.auth.getUser()?.id || ""],
+          read_by: [...(n.read_by || []), userId],
         }))
       );
       setUnreadCount(0);
@@ -320,6 +342,8 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
   const markAsRead = async (notificationId: string) => {
     try {
       await notificationService.markAsRead(notificationId);
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || "";
       setNotifications(
         notifications.map((n) =>
           n.id === notificationId
@@ -327,7 +351,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                 ...n,
                 read_by: [
                   ...(n.read_by || []),
-                  supabase.auth.getUser()?.id || "",
+                  userId,
                 ],
               }
             : n
@@ -428,11 +452,33 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
     }
   };
 
+  // Close sidebar on outside click
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setSidebarOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [sidebarOpen]);
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 w-full">
       <div className="flex items-center justify-between px-6 py-3 gap-4">
-        {/* Left: Logo */}
-        <div className="flex items-center space-x-2">
+        {/* Left: Logo and Navigation */}
+        <div className="flex items-center">
+          {/* Hamburger Button */}
+          <button
+            className="mr-1 p-2 rounded hover:bg-gray-100 focus:outline-none"
+            aria-label="Open Business Operations Menu"
+            onClick={() => setSidebarOpen((v) => !v)}
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <Link
             to="/dashboard"
             aria-label="Go to dashboard"
@@ -441,6 +487,37 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
             AI-BOS
           </Link>
         </div>
+        {/* Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40">
+            <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity" onClick={() => setSidebarOpen(false)}></div>
+            <div ref={sidebarRef} className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl border-r border-gray-200 z-50 flex flex-col p-6 animate-slide-in rounded-r-3xl">
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-xl font-bold text-gray-900">Business Operations</span>
+                <button onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" className="p-2 rounded hover:bg-gray-100">
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <nav className="flex flex-col gap-2">
+                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                  <span className="text-lg">🏢</span> Overview
+                </button>
+                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                  <span className="text-lg">⚙️</span> Admin & Config
+                </button>
+                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                  <span className="text-lg">👥</span> HR Management
+                </button>
+                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                  <span className="text-lg">🏢</span> Multi-Company
+                </button>
+                {/* Add more module links as needed */}
+              </nav>
+            </div>
+          </div>
+        )}
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
           {/* Search Bar */}
@@ -496,8 +573,8 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
               </span>
             )}
 
-            {/* Search Results Dropdown */}
-            {searchOpen && (searchResults.length > 0 || searchLoading) && (
+            {/* Search Results Dropdown - PATCHED: always show when searchOpen and searchTerm */}
+            {searchOpen && searchTerm.trim().length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 max-h-96 overflow-y-auto">
                 {searchLoading ? (
                   <div className="px-4 py-3 text-gray-500 text-sm">
@@ -550,9 +627,46 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                     </div>
                   </>
                 ) : (
-                  <div className="px-4 py-3 text-gray-500 text-sm">
-                    No results found for "{searchTerm}"
-                  </div>
+                  <>
+                    <div className="px-4 py-3 text-gray-500 text-sm">
+                      No results found for "{searchTerm}"
+                    </div>
+                    {fuzzySuggestions.length > 0 && (
+                      <div className="px-4 py-2 text-gray-700 text-sm">
+                        Did you mean:
+                        <div className="flex flex-col gap-1 mt-1">
+                          {fuzzySuggestions.map((suggestion) => (
+                            <button
+                              key={`fuzzy-${suggestion.type}-${suggestion.id}`}
+                              onClick={() => handleSearchResultClick(suggestion)}
+                              className="w-full flex items-start gap-3 px-2 py-2 rounded hover:bg-blue-50 transition text-left"
+                              tabIndex={0}
+                            >
+                              <span className="text-lg mt-0.5">{suggestion.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">
+                                  {suggestion.title}
+                                </div>
+                                {suggestion.subtitle && (
+                                  <div className="text-xs text-gray-500 truncate">
+                                    {suggestion.subtitle}
+                                  </div>
+                                )}
+                                {suggestion.description && (
+                                  <div className="text-xs text-gray-400 truncate">
+                                    {suggestion.description}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-xs text-gray-400 capitalize">
+                                {suggestion.type}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -703,7 +817,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                   ) : notifications.length > 0 ? (
                     notifications.slice(0, 5).map((n) => {
                       const isRead = n.read_by?.includes(
-                        supabase.auth.getUser()?.id || ""
+                        user?.id || ""
                       );
                       return (
                         <div
@@ -783,7 +897,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
             {menuOpen && (
               <div
                 ref={menuRef}
-                className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 animate-fade-in font-ui"
+                className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 animate-fade-in font-ui dropdown-scroll"
               >
                 {/* User Info */}
                 <div className="px-6 pb-2">
@@ -852,7 +966,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                         style={{ minWidth: "90px" }}
                         onClick={() => alert("Upload File")}
                       >
-                        <span className="text-xl">📤</span>Upload File
+                        <span className="text-xl">��</span>Upload File
                       </button>
                     </div>
                   </div>
@@ -970,7 +1084,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                     onClick={() => setMenuOpen(false)}
                   >
                     <span className="text-xl">❓</span>
-                    <span>Help</span>
+                    <span>Support Center</span>
                   </Link>
                   <Link
                     to="/feedback"

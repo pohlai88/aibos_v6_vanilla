@@ -193,6 +193,11 @@ AIBOS provides a unified internal portal for all business operations with:
 - [docs/github_copilot_goalkeeper.md](./docs/github_copilot_goalkeeper.md) — GitHub Copilot secondary goalkeeper protocol
 - [docs/TEAMS.md](./docs/TEAMS.md) — Team organization and contributor recognition
 
+### 🆕 Support System Documentation
+
+- [docs/SUPPORT_SYSTEM_TESTING.md](./docs/SUPPORT_SYSTEM_TESTING.md) — Comprehensive testing guide for support features
+- [SUPPORT_SYSTEM_SUMMARY.md](./SUPPORT_SYSTEM_SUMMARY.md) — Overview of support system architecture and features
+
 ### 🚀 Documentation Quick Start
 
 1. **New to AIBOS?** Start with [AIBOS_Foundation.md](./AIBOS_Foundation.md) and [docs/onboarding.md](./docs/onboarding.md)

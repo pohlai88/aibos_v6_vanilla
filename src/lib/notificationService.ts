@@ -86,11 +86,15 @@ export class NotificationService {
         .from(this.notificationsTable)
         .select('*', { count: 'exact' });
 
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || "";
+
       // Filter by target type and user access
-      query = query.or(`target_type.eq.global,target_type.eq.user,target_ids.cs.{${supabase.auth.getUser()?.id}}`);
+      query = query.or(`target_type.eq.global,target_type.eq.user,target_ids.cs.{${userId}}`);
 
       if (!includeRead) {
-        query = query.not('read_by', 'cs', `{${supabase.auth.getUser()?.id}}`);
+        query = query.not('read_by', 'cs', `{${userId}}`);
       }
 
       const { data, error, count } = await query
@@ -108,13 +112,14 @@ export class NotificationService {
   // Mark notification as read
   async markAsRead(notificationId: string): Promise<void> {
     try {
-      const userId = supabase.auth.getUser()?.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       if (!userId) throw new Error('User not authenticated');
 
       const { error } = await supabase
         .from(this.notificationsTable)
         .update({
-          read_by: supabase.sql`array_append(read_by, ${userId})`
+          read_by: [...(await this.getNotificationReadBy(notificationId)), userId]
         })
         .eq('id', notificationId);
 
@@ -125,16 +130,51 @@ export class NotificationService {
     }
   }
 
+  // Helper method to get current read_by array
+  private async getNotificationReadBy(notificationId: string): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from(this.notificationsTable)
+        .select('read_by')
+        .eq('id', notificationId)
+        .single();
+
+      if (error) throw error;
+      return data?.read_by || [];
+    } catch (error) {
+      console.error('Error getting notification read_by:', error);
+      return [];
+    }
+  }
+
+  // Helper method to get current dismissed_by array
+  private async getNotificationDismissedBy(notificationId: string): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from(this.notificationsTable)
+        .select('dismissed_by')
+        .eq('id', notificationId)
+        .single();
+
+      if (error) throw error;
+      return data?.dismissed_by || [];
+    } catch (error) {
+      console.error('Error getting notification dismissed_by:', error);
+      return [];
+    }
+  }
+
   // Mark notification as dismissed
   async markAsDismissed(notificationId: string): Promise<void> {
     try {
-      const userId = supabase.auth.getUser()?.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       if (!userId) throw new Error('User not authenticated');
 
       const { error } = await supabase
         .from(this.notificationsTable)
         .update({
-          dismissed_by: supabase.sql`array_append(dismissed_by, ${userId})`
+          dismissed_by: [...(await this.getNotificationDismissedBy(notificationId)), userId]
         })
         .eq('id', notificationId);
 
@@ -148,18 +188,33 @@ export class NotificationService {
   // Mark all notifications as read
   async markAllAsRead(): Promise<void> {
     try {
-      const userId = supabase.auth.getUser()?.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       if (!userId) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      // Get all unread notifications for the user
+      const { data: notifications, error: fetchError } = await supabase
         .from(this.notificationsTable)
-        .update({
-          read_by: supabase.sql`array_append(read_by, ${userId})`
-        })
+        .select('id, read_by')
         .or(`target_type.eq.global,target_type.eq.user,target_ids.cs.{${userId}}`)
         .not('read_by', 'cs', `{${userId}}`);
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
+
+      // Update each notification individually
+      for (const notification of notifications || []) {
+        const currentReadBy = notification.read_by || [];
+        if (!currentReadBy.includes(userId)) {
+          const { error: updateError } = await supabase
+            .from(this.notificationsTable)
+            .update({
+              read_by: [...currentReadBy, userId]
+            })
+            .eq('id', notification.id);
+
+          if (updateError) throw updateError;
+        }
+      }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       throw error;
@@ -235,7 +290,8 @@ export class NotificationService {
   // Get user notification settings
   async getUserNotificationSettings(): Promise<NotificationSettings | null> {
     try {
-      const userId = supabase.auth.getUser()?.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       if (!userId) return null;
 
       const { data, error } = await supabase
@@ -255,7 +311,8 @@ export class NotificationService {
   // Update user notification settings
   async updateUserNotificationSettings(settings: Partial<NotificationSettings>): Promise<NotificationSettings> {
     try {
-      const userId = supabase.auth.getUser()?.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       if (!userId) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -285,6 +342,9 @@ export class NotificationService {
     metadata?: Record<string, any>
   ): Promise<Notification[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id || 'system';
+      
       const notifications = userIds.map(userId => ({
         title,
         message,
@@ -292,7 +352,7 @@ export class NotificationService {
         priority,
         target_type: 'user' as const,
         target_ids: [userId],
-        created_by: supabase.auth.getUser()?.id || 'system',
+        created_by: currentUserId,
         metadata
       }));
 
@@ -318,13 +378,16 @@ export class NotificationService {
     metadata?: Record<string, any>
   ): Promise<Notification> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id || 'system';
+      
       const notification = {
         title,
         message,
         type,
         priority,
         target_type: 'global' as const,
-        created_by: supabase.auth.getUser()?.id || 'system',
+        created_by: currentUserId,
         metadata
       };
 
@@ -338,11 +401,14 @@ export class NotificationService {
   // Get unread count for current user
   async getUnreadCount(): Promise<number> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || "";
+      
       const { count, error } = await supabase
         .from(this.notificationsTable)
         .select('*', { count: 'exact', head: true })
-        .or(`target_type.eq.global,target_type.eq.user,target_ids.cs.{${supabase.auth.getUser()?.id}}`)
-        .not('read_by', 'cs', `{${supabase.auth.getUser()?.id}}`);
+        .or(`target_type.eq.global,target_type.eq.user,target_ids.cs.{${userId}}`)
+        .not('read_by', 'cs', `{${userId}}`);
 
       if (error) throw error;
       return count || 0;
@@ -353,7 +419,10 @@ export class NotificationService {
   }
 
   // Subscribe to real-time notifications
-  subscribeToNotifications(callback: (notification: Notification) => void) {
+  async subscribeToNotifications(callback: (notification: Notification) => void) {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || "";
+    
     return supabase
       .channel('notifications')
       .on(
@@ -362,7 +431,7 @@ export class NotificationService {
           event: 'INSERT',
           schema: 'public',
           table: this.notificationsTable,
-          filter: `target_type=eq.global OR target_ids=cs.{${supabase.auth.getUser()?.id}}`
+          filter: `target_type=eq.global OR target_ids=cs.{${userId}}`
         },
         (payload) => {
           callback(payload.new as Notification);

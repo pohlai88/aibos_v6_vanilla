@@ -11,6 +11,7 @@ import SecuritySettings from "./sections/SecuritySettings";
 import AuditLogs from "./sections/AuditLogs";
 import SystemSettings from "./sections/SystemSettings";
 import NotificationManagement from "./sections/NotificationManagement";
+import SupportNotifications from "@/components/support/SupportNotifications";
 
 type AdminSection =
   | "overview"
@@ -204,6 +205,13 @@ export const AdminConfigPage: React.FC<AdminConfigPageProps> = ({
               </div>
 
               <div className="flex items-center space-x-4">
+                <SupportNotifications 
+                  onNotificationClick={(notification) => {
+                    if (notification.type === "feature_request") {
+                      setCurrentSection("modules");
+                    }
+                  }}
+                />
                 <OrganizationSwitcher
                   organizations={[]}
                   userOrganizations={[]}
