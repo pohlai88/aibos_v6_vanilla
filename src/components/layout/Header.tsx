@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import MoodPicker from "../ui/MoodPicker";
 import ThemeToggle from "../ui/ThemeToggle";
 import girlAvatar from "../icons/Avatars.png";
@@ -98,6 +98,7 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const today = new Date();
   const isBirthday = today.getMonth() === 6 && today.getDate() === 3; // July 3 (mock)
@@ -501,16 +502,16 @@ const Header: React.FC<{ userEmail?: string }> = ({ userEmail }) => {
                 </button>
               </div>
               <nav className="flex flex-col gap-2">
-                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                <button onClick={() => { navigate('/business', { replace: true }); setSidebarOpen(false); }} className={`text-left px-4 py-3 rounded-lg font-medium flex items-center gap-2 ${location.pathname === '/business' && !location.search ? 'bg-blue-100 text-blue-700' : 'text-gray-800 hover:bg-blue-50'}`}>
                   <span className="text-lg">🏢</span> Overview
                 </button>
-                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                <button onClick={() => { navigate('/business?view=admin', { replace: true }); setSidebarOpen(false); }} className={`text-left px-4 py-3 rounded-lg font-medium flex items-center gap-2 ${location.search.includes('view=admin') ? 'bg-blue-100 text-blue-700' : 'text-gray-800 hover:bg-blue-50'}`}>
                   <span className="text-lg">⚙️</span> Admin & Config
                 </button>
-                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                <button onClick={() => { navigate('/business?view=hrm', { replace: true }); setSidebarOpen(false); }} className={`text-left px-4 py-3 rounded-lg font-medium flex items-center gap-2 ${location.search.includes('view=hrm') ? 'bg-blue-100 text-blue-700' : 'text-gray-800 hover:bg-blue-50'}`}>
                   <span className="text-lg">👥</span> HR Management
                 </button>
-                <button onClick={() => { navigate('/business'); setSidebarOpen(false); }} className="text-left px-4 py-3 rounded-lg text-gray-800 hover:bg-blue-50 font-medium flex items-center gap-2">
+                <button onClick={() => { navigate('/business?view=organizations', { replace: true }); setSidebarOpen(false); }} className={`text-left px-4 py-3 rounded-lg font-medium flex items-center gap-2 ${location.search.includes('view=organizations') ? 'bg-blue-100 text-blue-700' : 'text-gray-800 hover:bg-blue-50'}`}>
                   <span className="text-lg">🏢</span> Multi-Company
                 </button>
                 {/* Add more module links as needed */}

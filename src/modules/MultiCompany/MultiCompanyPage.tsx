@@ -1,191 +1,175 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { Organization, UserOrganization, OrganizationFormData } from "@/types/organization";
-import { OrganizationTable } from "./OrganizationTable";
-import { OrganizationSwitcher } from "./OrganizationSwitcher";
-import OrganizationForm from "./OrganizationForm";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import React from "react";
+import { useSearchParams } from "react-router-dom";
+import SimpleDashboard from "./SimpleDashboard";
+import OrganizationRegistry from "./OrganizationRegistry";
+import OrganizationHierarchy from "./OrganizationHierarchy";
+import MultiCompanySettings from "./MultiCompanySettings";
+import MultiCompanyReporting from "./MultiCompanyReporting";
+import MultiCompanyCompliance from "./MultiCompanyCompliance";
+import { Organization } from "@/types/organization";
 
 interface MultiCompanyPageProps {
   className?: string;
 }
 
+type TabType = 'dashboard' | 'registry' | 'hierarchy' | 'compliance' | 'reporting' | 'settings';
+
+// Mock data for organizations
+const mockOrganizations: Organization[] = [
+  {
+    id: '1',
+    name: 'AI-BOS Demo Organization',
+    slug: 'aibos-demo',
+    legal_name: 'AI-BOS Demo Organization LLC',
+    industry: 'Technology',
+    size_category: 'sme',
+    org_type: 'independent',
+    status: 'active',
+    website_url: 'https://aibos-demo.com',
+    timezone: 'UTC',
+    locale: 'en-US',
+    tax_id: '12-3456789',
+    registration_number: 'REG123456',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    parent_organization_id: undefined
+  },
+  {
+    id: '2',
+    name: 'Sample Company Ltd',
+    slug: 'sample-company',
+    legal_name: 'Sample Company Limited',
+    industry: 'Manufacturing',
+    size_category: 'enterprise',
+    org_type: 'independent',
+    status: 'active',
+    website_url: 'https://sample-company.com',
+    timezone: 'UTC',
+    locale: 'en-US',
+    tax_id: '98-7654321',
+    registration_number: 'REG654321',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    parent_organization_id: undefined
+  }
+];
+
 export const MultiCompanyPage: React.FC<MultiCompanyPageProps> = ({
   className = "",
 }) => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [userOrganizations, setUserOrganizations] = useState<
-    UserOrganization[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = (searchParams.get('tab') as TabType) || 'dashboard';
 
-  useEffect(() => {
-    fetchOrganizations();
-    fetchCurrentUser();
-  }, []);
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'registry', label: 'Organization Registry', icon: '🏢' },
+    { id: 'hierarchy', label: 'Hierarchy', icon: '🌳' },
+    { id: 'compliance', label: 'Compliance', icon: '✅' },
+    { id: 'reporting', label: 'Reporting', icon: '📈' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' }
+  ];
 
-  const fetchCurrentUser = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Error fetching current user:", error);
+  const handleTabChange = (tabId: TabType) => {
+    setSearchParams({ tab: tabId });
+  };
+
+  const handleNavigate = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
+  const handleOrganizationUpdate = () => {
+    // Mock organization update handler
+    // In a real app, this would refresh the organization data
+  };
+
+  const handleOrganizationSelect = (org: Organization) => {
+    // Mock organization select handler
+    // In a real app, this would handle organization selection
+    void org; // Silence unused variable warning
+  };
+
+  const renderTabContent = () => {
+    switch (currentTab) {
+      case 'dashboard':
+        return (
+          <SimpleDashboard 
+            organizations={mockOrganizations}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'registry':
+        return (
+          <OrganizationRegistry 
+            organizations={mockOrganizations}
+            onOrganizationUpdate={handleOrganizationUpdate}
+          />
+        );
+      case 'hierarchy':
+        return (
+          <OrganizationHierarchy 
+            organizations={mockOrganizations}
+            onOrganizationSelect={handleOrganizationSelect}
+          />
+        );
+      case 'compliance':
+        return <MultiCompanyCompliance />;
+      case 'reporting':
+        return <MultiCompanyReporting />;
+      case 'settings':
+        return <MultiCompanySettings />;
+      default:
+        return (
+          <SimpleDashboard 
+            organizations={mockOrganizations}
+            onNavigate={handleNavigate}
+          />
+        );
     }
   };
-
-  const fetchOrganizations = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch organizations the user has access to
-      const { data: orgs, error: orgsError } = await supabase
-        .from("organizations")
-        .select("*")
-        .order("name");
-
-      if (orgsError) throw orgsError;
-
-      // Fetch user-organization relationships
-      const { data: userOrgs, error: userOrgsError } = await supabase
-        .from("user_organizations")
-        .select("*")
-        .eq("user_id", currentUser?.id);
-
-      if (userOrgsError) throw userOrgsError;
-
-      setOrganizations(orgs || []);
-      setUserOrganizations(userOrgs || []);
-    } catch (error) {
-      console.error("Error fetching organizations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateOrganization = () => {
-    setEditingOrg(null);
-    setShowForm(true);
-  };
-
-  const handleEditOrganization = (org: Organization) => {
-    setEditingOrg(org);
-    setShowForm(true);
-  };
-
-  const handleFormClose = () => {
-    setShowForm(false);
-    setEditingOrg(null);
-  };
-
-  const handleFormSubmit = async (formData: OrganizationFormData) => {
-    try {
-      await fetchOrganizations();
-      handleFormClose();
-    } catch (error) {
-      console.error("Error saving organization:", error);
-    }
-  };
-
-  const filteredOrganizations = organizations.filter(
-    (org) =>
-      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.industry?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div
-        className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 ${className}`}
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 ${className}`}
-    >
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Organization Management
-              </h1>
-              <p className="text-gray-600">
-                Manage your organizations and multi-tenant setup
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <OrganizationSwitcher
-                organizations={organizations}
-                userOrganizations={userOrganizations}
-                onSwitch={fetchOrganizations}
-              />
-              <Button
-                onClick={handleCreateOrganization}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
-              >
-                + New Organization
-              </Button>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Multi-Company Management
+          </h1>
+          <p className="text-gray-600">
+            Comprehensive management of your multi-company setup
+          </p>
+        </div>
 
-          {/* Search and Filters */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder="Search organizations..."
-                  value={searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchTerm(e.target.value)
-                  }
-                  className="w-full"
-                />
-              </div>
-              <div className="text-sm text-gray-500">
-                {filteredOrganizations.length} of {organizations.length}{" "}
-                organizations
-              </div>
-            </div>
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200 bg-white rounded-t-lg">
+            <nav className="-mb-px flex overflow-x-auto">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id as TabType)}
+                  className={`
+                    whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm flex items-center space-x-2
+                    ${currentTab === tab.id
+                      ? 'border-blue-500 text-blue-600 bg-blue-50'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
           </div>
         </div>
 
-        {/* Organization Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <OrganizationTable
-            organizations={filteredOrganizations}
-            userOrganizations={userOrganizations}
-            onEdit={handleEditOrganization}
-            onRefresh={fetchOrganizations}
-            currentUser={currentUser}
-          />
+        {/* Tab Content */}
+        <div className="bg-white rounded-b-lg rounded-t-none shadow-sm border border-gray-200 border-t-0">
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
         </div>
-
-        {/* Organization Form Modal */}
-        <OrganizationForm
-          mode={editingOrg ? 'edit' : 'create'}
-          organizationId={editingOrg?.id}
-          onSuccess={handleFormSubmit}
-          onCancel={handleFormClose}
-          isOpen={showForm}
-        />
       </div>
     </div>
   );

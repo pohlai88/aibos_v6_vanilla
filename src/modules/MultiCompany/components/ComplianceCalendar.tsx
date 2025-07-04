@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import { Calendar, momentLocalizer, ToolbarProps, NavigateAction } from 'react-big-calendar';
 import moment from 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { StatutoryItem } from '@/types/statutory';
@@ -8,7 +8,7 @@ interface ComplianceCalendarProps {
   timezone: string;
   region: string;
   statutoryItems?: StatutoryItem[];
-  onEventClick?: (event: any) => void;
+  onEventClick?: (event: CalendarEvent) => void;
   onDateSelect?: (date: Date) => void;
   className?: string;
 }
@@ -19,7 +19,7 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   allDay?: boolean;
-  resource?: any;
+  resource?: StatutoryItem;
   priority: 'low' | 'medium' | 'high' | 'critical';
   category: string;
   description?: string;
@@ -97,7 +97,11 @@ export const ComplianceCalendar: React.FC<ComplianceCalendarProps> = ({
   // Get region-specific holidays and compliance dates
   const getRegionComplianceDates = (): CalendarEvent[] => {
     const currentYear = moment().year();
-    const regionDates: { [key: string]: any[] } = {
+    const regionDates: { [key: string]: Array<{
+      title: string;
+      date: string;
+      priority: 'low' | 'medium' | 'high' | 'critical';
+    }> } = {
       US: [
         { title: 'Tax Filing Deadline', date: `${currentYear}-04-15`, priority: 'critical' },
         { title: 'Annual Report Due', date: `${currentYear}-12-31`, priority: 'high' },
@@ -131,17 +135,17 @@ export const ComplianceCalendar: React.FC<ComplianceCalendarProps> = ({
   const allEvents = [...events, ...getRegionComplianceDates()];
 
   // Custom toolbar component
-  const CustomToolbar = (toolbar: any) => {
+  const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent, object>) => {
     const goToToday = () => {
-      toolbar.onNavigate('TODAY');
+      toolbar.onNavigate('TODAY' as NavigateAction);
     };
 
     const goToPrevious = () => {
-      toolbar.onNavigate('PREV');
+      toolbar.onNavigate('PREV' as NavigateAction);
     };
 
     const goToNext = () => {
-      toolbar.onNavigate('NEXT');
+      toolbar.onNavigate('NEXT' as NavigateAction);
     };
 
     const changeView = (viewName: 'month' | 'week' | 'day') => {

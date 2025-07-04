@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { EnhancedOrganization } from '@/types/statutory';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
 import Button from '@/components/ui/Button';
@@ -12,18 +11,25 @@ interface AuditTrailEntry {
   table_name: string;
   record_id: string;
   action: 'INSERT' | 'UPDATE' | 'DELETE';
-  old_values: any;
-  new_values: any;
+  old_values: Record<string, unknown>;
+  new_values: Record<string, unknown>;
   changed_by: string;
   changed_at: string;
   user_email: string;
 }
 
-interface AuditTrailTabProps {
-  organization: EnhancedOrganization;
+interface AuditSummary {
+  action: string;
+  table_name: string;
+  action_count: number;
+  last_action: string;
 }
 
-const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
+interface AuditTrailTabProps {
+  organizationId: string;
+}
+
+const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organizationId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAction, setSelectedAction] = useState<string>('all');
   const [selectedTable, setSelectedTable] = useState<string>('all');
@@ -32,10 +38,10 @@ const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
 
   // Fetch audit trail data
   const { data: auditTrail, isLoading, error, refetch } = useQuery({
-    queryKey: ['audit-trail', organization.id, page, limit],
+    queryKey: ['audit-trail', organizationId, page, limit],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_organization_audit_trail', {
-        org_id: organization.id,
+        org_id: organizationId,
         limit_count: limit,
         offset_count: (page - 1) * limit
       });
@@ -43,22 +49,22 @@ const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
       if (error) throw error;
       return data as AuditTrailEntry[];
     },
-    enabled: !!organization.id,
+    enabled: !!organizationId,
   });
 
   // Fetch audit summary for filtering
   const { data: auditSummary } = useQuery({
-    queryKey: ['audit-summary', organization.id],
+    queryKey: ['audit-summary', organizationId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('organization_audit_summary')
         .select('*')
-        .eq('organization_id', organization.id);
+        .eq('organization_id', organizationId);
 
       if (error) throw error;
       return data;
     },
-    enabled: !!organization.id,
+    enabled: !!organizationId,
   });
 
   // Filter audit trail entries
@@ -112,7 +118,7 @@ const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
   };
 
   // Format changed values for display
-  const formatChangedValues = (oldValues: any, newValues: any, action: string) => {
+  const formatChangedValues = (oldValues: Record<string, unknown>, newValues: Record<string, unknown>, action: string) => {
     if (action === 'INSERT') {
       return (
         <div className="text-sm text-green-600">
@@ -175,7 +181,7 @@ const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Audit Trail</h2>
           <p className="text-gray-600 mt-1">
-            Track all changes made to {organization.name} and its related data
+            Track all changes made to this organization and its related data
           </p>
         </div>
         <Button
@@ -336,7 +342,7 @@ const AuditTrailTab: React.FC<AuditTrailTabProps> = ({ organization }) => {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {auditSummary.map((summary: any) => (
+            {auditSummary.map((summary: AuditSummary) => (
               <div key={`${summary.table_name}-${summary.action}`} className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {summary.action_count}

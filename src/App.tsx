@@ -8,6 +8,7 @@ import { BusinessOperationsPage } from "./modules/BusinessOperations";
 import LoginPage from "./pages/LoginPage";
 import { ProfilePage } from "./modules/Profile";
 import { SupportPage } from "./modules/Support";
+import { MultiCompanyPage } from "./modules/MultiCompany";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 import AppShell from "./components/layout/AppShell";
@@ -78,6 +79,16 @@ function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <SupportPage />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/multi-company/*"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <MultiCompanyPage />
                   </AppShell>
                 </ProtectedRoute>
               }

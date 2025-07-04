@@ -6,14 +6,14 @@ import TabNavigation from '@/components/ui/TabNavigation';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
-
-// Import tab components (we'll create these next)
-import StatutoryItemsTab from './tabs/StatutoryItemsTab';
-import DocumentsTab from './tabs/DocumentsTab';
-import ShareholdingTab from './tabs/ShareholdingTab';
-import IntercompanyTab from './tabs/IntercompanyTab';
-import ComplianceCalendarTab from './tabs/ComplianceCalendarTab';
-import AuditTrailTab from './tabs/AuditTrailTab';
+import { 
+  StatutoryItemsTab, 
+  DocumentsTab, 
+  ShareholdingTab, 
+  IntercompanyTab, 
+  ComplianceCalendarTab, 
+  AuditTrailTab 
+} from './StatutoryTabs';
 
 interface StatutoryMaintenanceProps {
   organizationId: string;
@@ -109,7 +109,7 @@ const StatutoryMaintenance: React.FC<StatutoryMaintenanceProps> = ({
       case 'calendar':
         return <ComplianceCalendarTab organizationId={organizationId} />;
       case 'audit':
-        return <AuditTrailTab organization={organization} />;
+        return <AuditTrailTab organizationId={organizationId} />;
       default:
         return <StatutoryItemsTab organizationId={organizationId} />;
     }
