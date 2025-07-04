@@ -25,7 +25,8 @@
     "monitor": "node scripts/monitor-phase2.cjs",
     "test:phase2": "node scripts/test-phase2.cjs",
     "verify-merge-readiness": "node scripts/verify-merge-readiness.cjs",
-    "verify-production-readiness": "node scripts/verify-production-readiness.cjs"
+    "verify-production-readiness": "node scripts/verify-production-readiness.cjs",
+    "deploy:staging": "node scripts/deploy-staging.cjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

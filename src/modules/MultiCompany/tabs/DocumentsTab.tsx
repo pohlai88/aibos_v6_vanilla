@@ -28,7 +28,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ organizationId }) => {
     description: '',
     document_type: 'other' as const,
     file: null as File | null,
-    tags: [] as string[]
+    tags: [] as string[],
+    expiry_date: ''
   });
 
   useEffect(() => {
@@ -68,7 +69,10 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ organizationId }) => {
         file_path: uploadResult.path,
         file_size: uploadForm.file.size,
         mime_type: uploadForm.file.type,
-        tags: uploadForm.tags
+        tags: uploadForm.tags,
+        status: 'active' as const,
+        version: '1.0',
+        is_latest_version: true
       };
 
       await statutoryMaintenanceService.documents.createDocument(documentData);
@@ -79,7 +83,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ organizationId }) => {
         description: '',
         document_type: 'other',
         file: null,
-        tags: []
+        tags: [],
+        expiry_date: ''
       });
       fetchDocuments();
     } catch (error) {
@@ -158,6 +163,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ organizationId }) => {
               placeholder="Search documents..."
               value={searchTerm}
               onChange={setSearchTerm}
+              onSearch={setSearchTerm}
             />
           </div>
           <div>

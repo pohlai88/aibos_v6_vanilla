@@ -330,7 +330,7 @@ const SupportPage: React.FC = () => {
             </div>
             
             {showAIAgent && (
-              <AdvancedAIAgent onClose={() => setShowAIAgent(false)} />
+              <AdvancedAIAgent />
             )}
           </div>
         );
