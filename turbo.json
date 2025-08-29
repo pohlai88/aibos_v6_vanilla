@@ -1,0 +1,42 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "globalDependencies": [
+        "tsconfig.base.json",
+        "packages/shared/openapi.yaml"
+    ],
+    "tasks": {
+        "codegen": {
+            "cache": true,
+            "outputs": [
+                "packages/shared/clients/**"
+            ]
+        },
+        "lint": {
+            "cache": true,
+            "outputs": []
+        },
+        "typecheck": {
+            "cache": true,
+            "outputs": []
+        },
+        "build": {
+            "dependsOn": [
+                "^build",
+                "codegen"
+            ],
+            "outputs": [
+                "dist/**",
+                ".next/**",
+                "build/**"
+            ]
+        },
+        "test": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": [
+                "coverage/**"
+            ]
+        }
+    }
+}

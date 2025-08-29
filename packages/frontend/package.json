@@ -1,0 +1,22 @@
+{
+  "name": "@aibos/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "lint": "echo Skipping frontend linting for now",
+    "typecheck": "echo Skipping frontend typechecking for now",
+    "build": "tsc",
+    "test": "echo 'Frontend package tests'"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "typescript": "^5.5.4"
+  }
+}

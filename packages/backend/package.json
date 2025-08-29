@@ -1,0 +1,14 @@
+{
+  "name": "@aibos/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AIBOS Backend Domain Logic and Business Services",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo Skipping Python tests for now",
+    "lint": "echo Skipping Python linting for now",
+    "typecheck": "echo Skipping Python typechecking for now"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

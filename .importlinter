@@ -1,0 +1,10 @@
+[importlinter]
+root_package = packages
+
+[contract: backend-layering]
+name = Python backend layering
+type = layers
+layers =
+    packages.backend
+    packages.shared
+    apps.api-python

@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  db:
+    image: supabase/postgres
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_PASSWORD: example
+  api-python:
+    build:
+      context: ../../apps/api-python
+    ports: ["8000:8000"]
+    env_file: ../../apps/api-python/.env.development
+    depends_on: [db]
+  frontend:
+    build:
+      context: ../../apps/frontend
+    ports: ["3000:3000"]
+    env_file: ../../apps/frontend/.env.development
+    depends_on: [api-python]
+
+profiles:
+  security: {}

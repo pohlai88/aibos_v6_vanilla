@@ -1,0 +1,15 @@
+{
+    "name": "aibos-api-python",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "uvicorn app.main:app --reload --port 8000",
+        "start": "uvicorn app.main:app --port 8000",
+        "test": "echo Skipping Python tests for now",
+        "lint": "echo Skipping Python linting for now",
+        "typecheck": "echo Skipping Python typechecking for now"
+    },
+    "dependencies": {
+        "@aibos/backend": "workspace:*"
+    }
+}
