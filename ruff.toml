@@ -1,8 +1,0 @@
-target-version = "py311"
-line-length = 100
-select = ["E","F","I","UP","B","SIM","RUF"]
-ignore = []
-
-[isort]
-known-first-party = ["packages", "apps"]
-profile = "black"

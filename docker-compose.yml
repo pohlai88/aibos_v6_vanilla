@@ -1,9 +1,28 @@
 version: '3.9'
 
 services:
-  # AIBOS Application
-  aibos:
-    build: .
+  # AIBOS Frontend
+  aibos-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-builder
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./apps/frontend/src:/app/apps/frontend/src
+      - ./packages/frontend/src:/app/packages/frontend/src
+    restart: unless-stopped
+
+  # AIBOS Backend API
+  aibos-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-builder
     ports:
       - "8000:8000"
     environment:
@@ -11,10 +30,13 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=development
       - DEBUG=true
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
     depends_on:
       - postgres
       - redis
     volumes:
+      - ./apps/api-python:/app/apps/api-python
+      - ./packages/backend:/app/packages/backend
       - ./uploads:/app/uploads
     restart: unless-stopped
 
@@ -40,7 +62,7 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
-  # HAProxy Load Balancer (optional)
+  # HAProxy Load Balancer
   haproxy:
     image: haproxy:2.8
     ports:
@@ -49,9 +71,26 @@ services:
     volumes:
       - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     depends_on:
-      - aibos
+      - aibos-frontend
+      - aibos-api
+    restart: unless-stopped
+
+  # Supabase (for development)
+  supabase:
+    image: supabase/supabase-dev
+    ports:
+      - "54321:54321"
+      - "54322:54322"
+    environment:
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - ANON_KEY=your-anon-key
+      - SERVICE_KEY=your-service-key
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  redis_data: 
+  redis_data:
+  supabase_data: 

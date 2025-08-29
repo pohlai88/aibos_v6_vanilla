@@ -1,33 +1,40 @@
-.PHONY: help install install-dev test test-cov lint format type-check clean run migrate seed-demo
+.PHONY: help install install-dev test test-cov lint format type-check clean run build dev
 
 help: ## Show this help message
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install production dependencies
-	pip install -e .
+install: ## Install all dependencies
+	pnpm install
 
 install-dev: ## Install development dependencies
-	pip install -e ".[dev,test]"
+	pnpm install
 	pre-commit install
 
-test: ## Run tests
-	pytest tests/ -v
+build: ## Build all packages
+	pnpm run build
 
-test-cov: ## Run tests with coverage
-	pytest tests/ --cov=packages --cov-report=html --cov-report=term-missing
+dev: ## Start development servers
+	pnpm run dev
 
-lint: ## Run linting checks
-	flake8 packages/ tests/
-	black --check packages/ tests/
-	isort --check-only packages/ tests/
+test: ## Run all tests
+	pnpm run test
 
-format: ## Format code
-	black packages/ tests/
-	isort packages/ tests/
+test-cov: ## Run tests with coverage (when implemented)
+	@echo "Coverage reporting to be implemented in Phase 3"
 
-type-check: ## Run type checking
-	mypy packages/
+lint: ## Run all linting checks
+	pnpm run lint
+
+type-check: ## Run all type checking
+	pnpm run typecheck
+
+codegen: ## Generate OpenAPI types
+	pnpm run codegen
+
+arch: ## Run architectural validation
+	pnpm run arch:ts
+	pnpm run arch:py
 
 clean: ## Clean up generated files
 	find . -type f -name "*.pyc" -delete
@@ -36,21 +43,12 @@ clean: ## Clean up generated files
 	rm -rf htmlcov/
 	rm -rf .pytest_cache/
 	rm -rf .mypy_cache/
-
-run: ## Run the development server
-	uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-run-prod: ## Run the production server
-	uvicorn main:app --host 0.0.0.0 --port 8000
-
-migrate: ## Run database migrations
-	alembic upgrade head
-
-seed-demo: ## Seed demo data
-	python scripts/seed_demo_data.py
+	rm -rf dist/
+	rm -rf .turbo/
+	rm -rf tsconfig.tsbuildinfo
 
 docker-build: ## Build Docker image
-	docker build -t aibos-ledger .
+	docker build -t aibos-monorepo .
 
 docker-run: ## Run with Docker Compose
 	docker-compose up -d
@@ -64,13 +62,33 @@ pre-commit-all: ## Run all pre-commit hooks
 	pre-commit run --all-files
 
 docs: ## Generate API documentation
-	python scripts/generate_docs.py
+	@echo "Documentation generation to be implemented in Phase 3"
 
-jupyter: ## Start Jupyter notebook
-	jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+# Monorepo specific commands
+monorepo:install ## Install monorepo dependencies
+	pnpm install
 
-# NOTE: Alembic is present for migrations. To apply migrations, run:
-#   alembic upgrade head
-# Or use the Makefile target:
-#   make migrate
-# Ensure migrations are up to date before deployment.
+monorepo:build ## Build all monorepo packages
+	pnpm run build
+
+monorepo:dev ## Start all development servers
+	pnpm run dev
+
+monorepo:test ## Run all tests across packages
+	pnpm run test
+
+monorepo:lint ## Run all linting across packages
+	pnpm run lint
+
+monorepo:typecheck ## Run all type checking across packages
+	pnpm run typecheck
+
+monorepo:arch ## Run architectural validation
+	pnpm run arch:ts
+	pnpm run arch:py
+
+# NOTE: This is a monorepo using pnpm workspaces and Turborepo.
+# Use pnpm commands for package management and turbo for task orchestration.
+# For development: pnpm run dev
+# For building: pnpm run build
+# For testing: pnpm run test

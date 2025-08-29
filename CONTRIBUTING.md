@@ -1,32 +1,30 @@
-# Contributing to AIbos Ledger
+# Contributing to AIBOS V6 Monorepo
 
-Thank you for your interest in contributing to AIbos Ledger! This document provides guidelines and instructions for developers who want to contribute to the project.
+Thank you for your interest in contributing to AIBOS V6! This document provides guidelines and instructions for developers who want to contribute to the project.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.9+
+- Node.js 18+
+- Python 3.11+
 - PostgreSQL 15+
 - Redis 7+
 - Docker & Docker Compose (optional)
+- pnpm (recommended package manager)
 
 ### Setup Development Environment
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/aibos.git
-   cd aibos
+   git clone https://github.com/pohlai88/aibos_v6_vanilla.git
+   cd aibos_v6_vanilla
    ```
 
 2. **Install dependencies**
    ```bash
-   # Install development dependencies
-   make install-dev
-   
-   # Or manually:
-   pip install -e ".[dev,test]"
-   pre-commit install
+   # Install all dependencies
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -37,24 +35,12 @@ Thank you for your interest in contributing to AIbos Ledger! This document provi
 
 4. **Start services with Docker Compose**
    ```bash
-   make docker-run
-   # Or manually:
    docker-compose up -d
    ```
 
-5. **Run database migrations**
+5. **Start the development servers**
    ```bash
-   make migrate
-   ```
-
-6. **Seed demo data**
-   ```bash
-   make seed-demo
-   ```
-
-7. **Start the development server**
-   ```bash
-   make run
+   pnpm run dev
    ```
 
 ## 🧪 Testing
@@ -62,295 +48,172 @@ Thank you for your interest in contributing to AIbos Ledger! This document provi
 ### Run Tests
 ```bash
 # Run all tests
-make test
+pnpm run test
 
-# Run with coverage
-make test-cov
-
-# Run specific test file
-pytest tests/unit/ledger/test_journal_entries.py -v
-
-# Run integration tests only
-pytest tests/integration/ -m integration
+# Run specific package tests
+pnpm --filter @aibos/frontend test
+pnpm --filter @aibos/backend test
 ```
 
 ### Test Coverage
-We aim for >80% test coverage. Generate coverage reports:
-```bash
-make test-cov
-# Open htmlcov/index.html in your browser
-```
+We aim for >80% test coverage. Coverage reporting will be implemented in Phase 3.
 
 ## 📝 Code Style
 
-### Formatting
-We use [Black](https://black.readthedocs.io/) for code formatting and [isort](https://pycqa.github.io/isort/) for import sorting.
+### Frontend (TypeScript/React)
+We use ESLint and Prettier for code formatting and linting.
 
 ```bash
-# Format code
-make format
+# Lint frontend code
+pnpm --filter @aibos/frontend lint
 
-# Check formatting
-make lint
+# Type check frontend code
+pnpm --filter @aibos/frontend typecheck
+```
+
+### Backend (Python)
+We use Black for code formatting and mypy for type checking.
+
+```bash
+# Format Python code (when implemented)
+pnpm --filter @aibos/backend format
+
+# Type check Python code (when implemented)
+pnpm --filter @aibos/backend typecheck
 ```
 
 ### Type Hints
-We use [mypy](https://mypy.readthedocs.io/) for static type checking. All public functions should have type hints.
+We use TypeScript for frontend and mypy for Python static type checking. All public functions should have type hints.
 
-```bash
-# Run type checking
-make type-check
+## 🏗️ Monorepo Development
+
+### Package Structure
+```
+apps/
+├── frontend/          # React frontend application
+└── api-python/        # FastAPI backend application
+
+packages/
+├── frontend/          # Shared frontend components
+├── backend/           # Shared backend business logic
+└── shared/            # OpenAPI contracts & shared types
 ```
 
-### Pre-commit Hooks
-Pre-commit hooks automatically run formatting, linting, and type checking on commit:
-
+### Development Commands
 ```bash
-# Install pre-commit hooks
-pre-commit install
+# Install dependencies
+pnpm install
 
-# Run all hooks manually
-make pre-commit-all
+# Start development servers
+pnpm run dev
+
+# Build all packages
+pnpm run build
+
+# Type check all packages
+pnpm run typecheck
+
+# Lint all packages
+pnpm run lint
+
+# Run architectural validation
+pnpm run arch:ts      # TypeScript architecture
+pnpm run arch:py      # Python architecture
+
+# Generate OpenAPI types
+pnpm run codegen
 ```
 
-## 🏗️ Development Workflow
+### Adding New Packages
+1. Create the package directory in `packages/`
+2. Add `package.json` or `pyproject.toml`
+3. Update `pnpm-workspace.yaml` if needed
+4. Update `turbo.json` with new tasks
+5. Add to root `package.json` scripts if needed
+
+### Cross-Package Dependencies
+- Frontend packages can depend on `@aibos/shared`
+- Backend packages can depend on `@aibos/shared`
+- Use workspace protocol: `"@aibos/shared": "workspace:*"`
+
+## 🔧 Development Workflow
 
 ### 1. Create a Feature Branch
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
-### 2. Make Your Changes
-- Follow the coding standards below
-- Add tests for new functionality
-- Update documentation as needed
+### 2. Make Changes
+- Follow the established monorepo structure
+- Update relevant documentation in `config/`
+- Ensure all quality gates pass
 
-### 3. Run Quality Checks
-```bash
-make check-all
-```
+### 3. Quality Gates
+Before committing, ensure:
+- [ ] All tests pass: `pnpm run test`
+- [ ] Type checking passes: `pnpm run typecheck`
+- [ ] Linting passes: `pnpm run lint`
+- [ ] Architecture validation passes: `pnpm run arch:ts` and `pnpm run arch:py`
+- [ ] Build succeeds: `pnpm run build`
 
-### 4. Commit Your Changes
+### 4. Commit and Push
 ```bash
 git add .
-git commit -m "feat: add new journal entry validation"
-```
-
-### 5. Push and Create Pull Request
-```bash
+git commit -m "feat: your feature description"
 git push origin feature/your-feature-name
 ```
 
-## 📋 Coding Standards
-
-### Python Code Style
-
-1. **Follow PEP 8** with Black formatting
-2. **Use type hints** for all function parameters and return values
-3. **Write docstrings** for all public functions and classes
-4. **Use meaningful variable names**
-5. **Keep functions small and focused**
-
-### Example
-```python
-from typing import List, Optional
-from decimal import Decimal
-from uuid import UUID
-
-def create_journal_entry(
-    reference: str,
-    description: str,
-    amount: Decimal,
-    account_id: UUID,
-    created_by: Optional[UUID] = None
-) -> JournalEntry:
-    """
-    Create a new journal entry.
-    
-    Args:
-        reference: Unique reference for the entry
-        description: Human-readable description
-        amount: Transaction amount
-        account_id: Target account ID
-        created_by: User ID who created the entry
-        
-    Returns:
-        JournalEntry: The created journal entry
-        
-    Raises:
-        ValueError: If reference is empty or amount is invalid
-    """
-    if not reference:
-        raise ValueError("Reference is required")
-    
-    if amount <= 0:
-        raise ValueError("Amount must be positive")
-    
-    # Implementation...
-```
-
-### Database Migrations
-
-1. **Create migrations** for all schema changes
-2. **Use descriptive names** for migration files
-3. **Test migrations** on both up and down
-4. **Include rollback scripts** for production safety
-
-### API Design
-
-1. **Use RESTful conventions**
-2. **Version your APIs** (e.g., `/api/v1/`)
-3. **Return consistent error responses**
-4. **Use proper HTTP status codes**
-5. **Include pagination** for list endpoints
-
-### Error Handling
-
-1. **Use specific exception types**
-2. **Provide meaningful error messages**
-3. **Log errors appropriately**
-4. **Don't expose sensitive information**
-
-## 🧪 Testing Guidelines
-
-### Unit Tests
-- Test individual functions and methods
-- Use descriptive test names
-- Mock external dependencies
-- Aim for >90% coverage on business logic
-
-### Integration Tests
-- Test component interactions
-- Use test databases
-- Clean up after tests
-- Test API endpoints
-
-### Test Structure
-```python
-import pytest
-from decimal import Decimal
-from packages.modules.ledger.domain import LedgerService, AccountType
-
-class TestJournalEntryCreation:
-    """Test journal entry creation functionality."""
-    
-    @pytest.fixture
-    def ledger_service(self):
-        """Create a ledger service for testing."""
-        return LedgerService()
-    
-    def test_create_valid_journal_entry(self, ledger_service):
-        """Test creating a valid journal entry."""
-        # Arrange
-        reference = "TEST-001"
-        description = "Test entry"
-        
-        # Act
-        entry = ledger_service.create_journal_entry(reference, description)
-        
-        # Assert
-        assert entry.reference == reference
-        assert entry.description == description
-        assert entry.status == WorkflowStatus.DRAFT
-```
+### 5. Create Pull Request
+- Target the `main` branch
+- Include description of changes
+- Reference any related issues
+- Ensure CI/CD checks pass
 
 ## 📚 Documentation
 
+### SSOT Documentation
+All documentation is maintained in `config/management/` as Single Source of Truth (SSOT):
+- Update relevant SSOT documents when making changes
+- Follow the established documentation structure
+- Cross-reference between related documents
+
 ### Code Documentation
-- Use Google-style docstrings
-- Document all public APIs
-- Include usage examples
-- Explain complex business logic
-
-### API Documentation
-- Use FastAPI's automatic documentation
-- Add detailed descriptions
-- Include request/response examples
-- Document error codes
-
-### README Updates
-- Update README.md for new features
-- Include setup instructions
-- Add usage examples
-- Document configuration options
-
-## 🔒 Security
-
-### Data Protection
-- Never log sensitive data
-- Use environment variables for secrets
-- Validate all inputs
-- Implement proper authentication
-
-### Multi-tenancy
-- Always enforce tenant isolation
-- Use tenant context in all operations
-- Validate tenant access permissions
-- Test cross-tenant data access
+- Include docstrings for all public functions
+- Update README files in package directories
+- Document API changes in OpenAPI specifications
 
 ## 🚀 Deployment
 
-### Environment Configuration
-- Use environment-specific configs
-- Validate required environment variables
-- Use secrets management in production
-- Implement health checks
+### Development
+```bash
+# Start all services
+docker-compose up -d
 
-### Database Migrations
-- Always backup before migrations
-- Test migrations in staging
-- Use transaction-safe migrations
-- Monitor migration performance
+# View logs
+docker-compose logs -f
 
-## 🤝 Pull Request Process
-
-1. **Create a descriptive PR title**
-2. **Fill out the PR template**
-3. **Link related issues**
-4. **Ensure all checks pass**
-5. **Request reviews from maintainers**
-6. **Address review feedback**
-7. **Squash commits before merge**
-
-### PR Template
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] Manual testing completed
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Documentation updated
-- [ ] No breaking changes
+# Stop all services
+docker-compose down
 ```
 
-## 🆘 Getting Help
+### Production
+- Use the provided Dockerfile for containerized deployment
+- Environment variables are configured via `.env` files
+- HAProxy configuration is included for load balancing
 
-### Resources
-- [API Documentation](http://localhost:8000/docs)
-- [Issue Tracker](https://github.com/your-org/aibos/issues)
-- [Discussions](https://github.com/your-org/aibos/discussions)
+## 🤝 Community Guidelines
 
-### Contact
-- **Technical Questions**: Create a GitHub issue
-- **Security Issues**: Email security@aibos.com
-- **General Support**: Email support@aibos.com
+- Be respectful and inclusive
+- Follow the established code style and architecture
+- Ask questions if something is unclear
+- Help others when possible
+- Report bugs and suggest improvements
 
-## 📄 License
+## 📞 Getting Help
 
-By contributing to AIbos Ledger, you agree that your contributions will be licensed under the MIT License.
+- Check the [Documentation Hub](../../config/management/00_INDEX.md)
+- Review existing issues and pull requests
+- Create a new issue for bugs or feature requests
+- Join our community discussions
 
----
-
-Thank you for contributing to AIbos Ledger! 🎉 
+Thank you for contributing to AIBOS V6! 🚀 

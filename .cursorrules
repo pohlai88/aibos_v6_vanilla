@@ -1,6 +1,6 @@
 # AIBOS - Cursor AI Configuration
 
-You are an expert in TypeScript, HTML5, Tailwind CSS, Vite, and Supabase.
+You are an expert in TypeScript, HTML5, Tailwind CSS, Vite, FastAPI, and Supabase.
 
 ## Code Style
 - Use TypeScript strict mode
@@ -20,29 +20,30 @@ You are an expert in TypeScript, HTML5, Tailwind CSS, Vite, and Supabase.
 - Follow RESTful API conventions
 
 ## Architecture Guidelines
-- Core vs Module separation: Never modify /src/core/ without approval
-- Modules go in /src/modules/ with their own README
-- Follow the universal tech stack: HTML + Vanilla JS + TypeScript + Tailwind + Vite + Supabase
-- No custom backend frameworks unless universally required
+- **Monorepo Structure**: Follow the established monorepo architecture
+- **Core vs Module separation**: Never modify `packages/backend/` core modules without approval
+- **Frontend**: All React components go in `apps/frontend/src/` with their own README
+- **Backend**: All Python modules go in `packages/backend/` with their own README
+- **Shared**: Common types and contracts go in `packages/shared/`
+- **Universal Tech Stack**: HTML + TypeScript + Tailwind + Vite + FastAPI + Supabase
+- **No custom backend frameworks** unless universally required
 
 ## Documentation Requirements
 - Each module must have its own README
 - Business logic and workflows must be documented
 - Update changelog for all major changes
-- Follow the AIBOS Foundation document guidelines
+- Follow the AIBOS SSOT documentation guidelines in `config/`
 
 ## AI Documentation Auto-Sync Rules
 - ALWAYS check documentation when making code changes
-- Update relevant docs/ files when adding new features
-- Update AIBOS_Foundation.md when changing core architecture
-- Update decision_log.md when making architectural decisions
-- Update api_contracts.md when changing API endpoints
-- Update database.md when modifying schema
-- Update security.md when changing authentication/permissions
-- Update performance.md when optimizing code
-- Update troubleshooting.md when fixing common issues
-- Update module_template.md when creating new modules
-- Update README.md documentation hub when adding new docs
+- Update relevant `config/` files when adding new features
+- Update SSOT documents when changing core architecture
+- Update decision logs when making architectural decisions
+- Update API contracts when changing endpoints
+- Update database schemas when modifying data models
+- Update security docs when changing authentication/permissions
+- Update performance docs when optimizing code
+- Update troubleshooting docs when fixing common issues
 - Cross-reference between related documentation files
 
 ## Security & Compliance
@@ -56,3 +57,11 @@ You are an expert in TypeScript, HTML5, Tailwind CSS, Vite, and Supabase.
 - Include unit tests for business logic
 - Test security boundaries and permissions
 - Ensure CI/CD checks pass before merging
+
+## Monorepo Commands
+- `pnpm install` - Install dependencies
+- `pnpm run build` - Build all packages
+- `pnpm run typecheck` - Type check all packages
+- `pnpm run lint` - Lint all packages
+- `pnpm run test` - Test all packages
+- `pnpm run codegen` - Generate OpenAPI types

@@ -15,21 +15,19 @@
 ### **🎯 Current Platform Status**
 
 - ✅ **Phase 1 Complete**: Foundation, authentication, core modules
-- 🔄 **Phase 2 Active**: Accounting module + backend integration
+- ✅ **Phase 2 Complete**: Accounting module + backend integration
 - 📋 **Phase 3 Planned**: KPMG intelligence + AI automation
 - 📋 **Phase 4 Planned**: Enterprise features + scaling
 
 ## 🚀 **Quick Start**
 
 1. **Clone the repository**
-2. **Install dependencies**:
-   - Frontend: `npm install`
-   - Backend: `pip install -r requirements.txt`
+2. **Install dependencies**: `pnpm install`
 3. **Set up environment**: Copy `.env.example` to `.env` and configure
-4. **Start development**:
-   - Frontend: `npm run dev`
-   - Backend: `uvicorn main:app --reload`
-5. **Access the application**: [http://localhost:5173](http://localhost:5173)
+4. **Start development**: `pnpm run dev`
+5. **Access the application**: 
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:8000](http://localhost:8000)
 
 ## 🔗 **API Documentation**
 
@@ -40,21 +38,42 @@ When the backend server is running, access interactive API documentation at:
 
 ## 🏗️ **Architecture Overview**
 
-- **Frontend**: React 19 + TypeScript + Tailwind CSS + Vite
+- **Frontend**: React 18 + TypeScript + Tailwind CSS + Vite
 - **Backend**: Python FastAPI + Supabase
 - **Database**: PostgreSQL with Row Level Security (RLS)
 - **Authentication**: Supabase Auth with role-based access control
 - **Deployment**: Docker + Kubernetes ready
+- **Monorepo**: pnpm workspaces + Turborepo
 
 ## 📋 **Development Commands**
 
 | Command                     | Description                       |
 | --------------------------- | --------------------------------- |
-| `npm run dev`               | Start frontend development server |
-| `npm run build`             | Build frontend for production     |
-| `npm run preview`           | Preview production build locally  |
-| `uvicorn main:app --reload` | Start backend development server  |
-| `pytest`                    | Run backend tests                 |
+| `pnpm install`              | Install all dependencies           |
+| `pnpm run dev`              | Start all development servers     |
+| `pnpm run build`            | Build all packages for production |
+| `pnpm run typecheck`        | Type check all packages           |
+| `pnpm run lint`             | Lint all packages                 |
+| `pnpm run test`             | Run all tests                     |
+| `pnpm run codegen`          | Generate OpenAPI types            |
+| `pnpm run arch:ts`          | Validate TypeScript architecture  |
+| `pnpm run arch:py`          | Validate Python architecture      |
+
+## 🏗️ **Monorepo Structure**
+
+```
+aibos_v6_vanilla/
+├── apps/
+│   ├── frontend/          # React frontend application
+│   └── api-python/        # FastAPI backend application
+├── packages/
+│   ├── frontend/          # Shared frontend components
+│   ├── backend/           # Shared backend business logic
+│   └── shared/            # OpenAPI contracts & shared types
+├── config/                # SSOT documentation & governance
+├── infra/                 # Docker & Kubernetes configs
+└── supabase/              # Supabase functions & configs
+```
 
 ## 🔒 **Security & Compliance**
 
@@ -62,6 +81,19 @@ When the backend server is running, access interactive API documentation at:
 - **Role-Based Access Control (RBAC)** for user permissions
 - **Audit logging** for compliance and traceability
 - **MFRS/IFRS compliance** framework (planned)
+
+## 🐳 **Docker Development**
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
 
 ---
 
